@@ -25,9 +25,9 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
       }}
     >
       {value ? (
-        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>ON</Text>
+        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>ON</Text>
       ) : (
-        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>OFF</Text>
+        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>OFF</Text>
       )}
       <View
         style={{
@@ -252,10 +252,11 @@ const getStyles = (theme) => StyleSheet.create({
   },
   headerTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
   },
   headerTagline: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -289,11 +290,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   badgeText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 12,
   },
   heroText: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     lineHeight: 20,
   },
   featuresSection: {
@@ -301,9 +303,9 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle: {
     color: theme.textMuted,
+    fontFamily: 'Lexend_700Bold',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    fontWeight: 'bold',
     marginBottom: 12,
   },
   featureCard: {
@@ -332,11 +334,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   featureTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_600SemiBold',
     marginBottom: 4,
   },
   featureSubtitle: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
   },
   helpButtonContainer: {
     backgroundColor: theme.bgHero,
@@ -365,16 +368,16 @@ const getStyles = (theme) => StyleSheet.create({
   },
   helpIconText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 14,
   },
   helpText: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
   },
   chevron: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 16,
   },
   bottomPin: {
@@ -394,6 +397,6 @@ const getStyles = (theme) => StyleSheet.create({
   },
   startBtnText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
   },
 });

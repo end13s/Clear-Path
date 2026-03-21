@@ -121,11 +121,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   logoTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 35,
   },
   logoTagline: {
     color: theme.accentBlue,
+    fontFamily: 'Lexend_400Regular',
     fontStyle: 'italic',
     fontSize: 16,
     marginTop: 4,
@@ -136,12 +137,13 @@ const getStyles = (theme) => StyleSheet.create({
   },
   heading: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 21,
     marginBottom: 6,
   },
   subtext: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     fontSize: 17,
     marginBottom: 24,
   },
@@ -178,8 +180,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   checkmark: {
     color: theme.bgPrimary,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 14,
-    fontWeight: 'bold',
   },
   cardContent: {
     flex: 1,
@@ -195,11 +197,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   cardTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 18,
   },
   cardSubtitle: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_600SemiBold',
     fontSize: 16,
   },
   footer: {
@@ -213,7 +216,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   continueBtnText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 20,
   },
 });
