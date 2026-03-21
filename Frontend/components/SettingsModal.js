@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Modal, ScrollView, TouchableOpacity, Dimensions, Alert, TouchableWithoutFeedback } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -57,10 +58,10 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
   const infoTitleSize = isElderly ? 20 : 17;
 
   const options = [
-    { id: 'colorBlind', icon: '🔴', title: 'Color blindness' },
-    { id: 'lowVision', icon: '👁️', title: 'Low vision' },
-    { id: 'elderly', icon: '👴', title: 'Age-related changes' },
-    { id: 'hearingDifficulty', icon: '📢', title: 'Hearing difficulty' }
+    { id: 'colorBlind', iconName: 'eye-outline', iconSize: 22, title: 'Color blindness' },
+    { id: 'lowVision', iconName: 'glasses-outline', iconSize: 22, title: 'Low vision' },
+    { id: 'elderly', iconName: 'person-outline', iconSize: 22, title: 'Age-related changes' },
+    { id: 'hearingDifficulty', iconName: 'ear-outline', iconSize: 22, title: 'Hearing difficulty' }
   ];
 
   const themeOptions = [
@@ -190,7 +191,9 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
                   onPress={() => handleToggle(opt.id)}
                 >
                   <View style={styles.cardLeft}>
-                    <Text style={styles.cardIcon}>{opt.icon}</Text>
+                    <View style={styles.cardIconContainer}>
+                      <Ionicons name={opt.iconName} size={opt.iconSize} color={theme.textPrimary} />
+                    </View>
                     <Text style={[styles.cardTitle, { fontSize: optionTitleSize }]}>{opt.title}</Text>
                   </View>
                   <View style={[styles.radio, selected && styles.radioSelected]}>
@@ -213,7 +216,9 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
                   {languageOptions.find(l => l.id === localLanguage)?.flag}{' '}
                   {languageOptions.find(l => l.id === localLanguage)?.title || 'English'}
                 </Text>
-                <Text style={styles.langChevron}>{langDropdownOpen ? '▲' : '▼'}</Text>
+                <View style={styles.langChevronContainer}>
+                  <Ionicons name={langDropdownOpen ? "chevron-up-outline" : "chevron-down-outline"} size={16} color={theme.textPrimary} />
+                </View>
               </TouchableOpacity>
               {langDropdownOpen && (
                 <View style={styles.langDropdown}>
@@ -420,6 +425,11 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 18,
     marginRight: 12
   },
+  cardIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   cardTitle: {
     color: theme.textPrimary,
     fontFamily: 'Lexend_600SemiBold'
@@ -510,6 +520,10 @@ const getStyles = (theme) => StyleSheet.create({
     color: theme.textSecondary,
     fontFamily: 'Lexend_400Regular',
     fontSize: 12,
+  },
+  langChevronContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   langDropdown: {
     marginTop: 6,

@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,11 +18,11 @@ export default function OnboardingScreen({ navigation }) {
   });
 
   const options = [
-    { id: 'colorBlind', icon: '🔴', title: 'Color blindness', subtitle: 'Difficulty distinguishing red, green, or other colors' },
-    { id: 'lowVision', icon: '👁️', title: 'Low vision', subtitle: 'Difficulty seeing clearly, even with glasses' },
-    { id: 'elderly', icon: '👴', title: 'Age-related changes', subtitle: 'Slower reaction time, need larger text and clearer cues' },
-    { id: 'hearingDifficulty', icon: '📢', title: 'Hearing difficulty', subtitle: 'Need louder or slower voice announcements' },
-    { id: 'none', icon: '✅', title: 'None of the above', subtitle: 'Use standard settings' }
+    { id: 'colorBlind', iconName: 'eye-outline', iconSize: 22, title: 'Color blindness', subtitle: 'Difficulty distinguishing red, green, or other colors' },
+    { id: 'lowVision', iconName: 'glasses-outline', iconSize: 22, title: 'Low vision', subtitle: 'Difficulty seeing clearly, even with glasses' },
+    { id: 'elderly', iconName: 'person-outline', iconSize: 22, title: 'Age-related changes', subtitle: 'Slower reaction time, need larger text and clearer cues' },
+    { id: 'hearingDifficulty', iconName: 'ear-outline', iconSize: 22, title: 'Hearing difficulty', subtitle: 'Need louder or slower voice announcements' },
+    { id: 'none', iconName: 'checkmark-circle-outline', iconSize: 22, title: 'None of the above', subtitle: 'Use standard settings' }
   ];
 
   const handleToggle = (id) => {
@@ -90,7 +91,9 @@ export default function OnboardingScreen({ navigation }) {
 
                 <View style={styles.cardContent}>
                   <View style={styles.titleRow}>
-                    <Text style={styles.icon}>{opt.icon}</Text>
+                    <View style={styles.iconContainer}>
+                      <Ionicons name={opt.iconName} size={opt.iconSize} color={theme.textPrimary} />
+                    </View>
                     <Text style={styles.cardTitle}>{opt.title}</Text>
                   </View>
                   <Text style={styles.cardSubtitle}>{opt.subtitle}</Text>
@@ -193,6 +196,11 @@ const getStyles = (theme) => StyleSheet.create({
   },
   icon: {
     fontSize: 18,
+    marginRight: 8,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 8,
   },
   cardTitle: {
