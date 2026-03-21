@@ -24,7 +24,7 @@ const HomeIcon = ({ size, color }) => (
 
 export default function CameraScreen() {
   const navigation = useNavigation();
-  const { profile, themeKey, toggles, updateToggle } = useContext(AppContext);
+  const { profile, themeKey, toggles, updateToggle, language } = useContext(AppContext);
   const theme = THEMES[themeKey] || THEMES.dark;
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -39,8 +39,7 @@ export default function CameraScreen() {
 
   // Track last announced signal to avoid repeats
   const lastSignalRef = useRef(null);
-  // Track user language and gender (default to 'en' and 'fem')
-  const [userLang, setUserLang] = useState('en');
+  // Track user gender (default to 'fem')
   const [userGender, setUserGender] = useState('fem');
 
   const togglesRef = useRef(toggles);
@@ -54,10 +53,9 @@ export default function CameraScreen() {
     }
   }, [permission]);
 
-  // Load language/gender from profile or AsyncStorage if available
+  // Load gender from profile if available
   useEffect(() => {
     if (profile) {
-      if (profile.language) setUserLang(profile.language);
       if (profile.gender) setUserGender(profile.gender);
     }
   }, [profile]);
@@ -65,13 +63,13 @@ export default function CameraScreen() {
   // Play audio when activeSignal changes
   useEffect(() => {
     if (activeSignal && lastSignalRef.current !== activeSignal) {
-      playSignalAudio({ color: activeSignal, lang: userLang, gender: userGender });
+      playSignalAudio({ color: activeSignal, lang: language, gender: userGender });
       lastSignalRef.current = activeSignal;
     }
     if (!activeSignal) {
       lastSignalRef.current = null;
     }
-  }, [activeSignal, userLang, userGender]);
+  }, [activeSignal, language, userGender]);
 
   useEffect(() => {
     const initSocket = () => {

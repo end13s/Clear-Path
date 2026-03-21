@@ -7,9 +7,11 @@ import { saveTheme, clearProfile } from '../utils/ProfileStorage';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function SettingsModal({ visible, onClose, profile, themeKey, onSave, onClear, theme }) {
+export default function SettingsModal({ visible, onClose, profile, themeKey, language, onSave, onClear, theme }) {
   const [localProfile, setLocalProfile] = useState(profile || { colorBlind: false, lowVision: false, elderly: false, hearingDifficulty: false });
   const [localTheme, setLocalTheme] = useState(themeKey || 'dark');
+  const [localLanguage, setLocalLanguage] = useState(language || 'en');
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [speechSpeed, setSpeechSpeed] = useState(0.85);
   const [speechVolume, setSpeechVolume] = useState(0.8);
 
@@ -17,8 +19,10 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, onS
     if (visible) {
       if (profile) setLocalProfile(profile);
       if (themeKey) setLocalTheme(themeKey);
+      setLocalLanguage(language || 'en');
+      setLangDropdownOpen(false);
     }
-  }, [visible, profile, themeKey]);
+  }, [visible, profile, themeKey, language]);
 
   useEffect(() => {
     async function loadVoiceSettings() {
@@ -63,6 +67,13 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, onS
     { id: 'highContrast', title: 'High Contrast' },
   ];
 
+  const languageOptions = [
+    { id: 'en', title: 'English', flag: '🇺🇸' },
+    { id: 'es', title: 'Español', flag: '🇪🇸' },
+    { id: 'zh', title: '中文', flag: '🇨🇳' },
+    { id: 'ro', title: 'Română', flag: '🇷🇴' },
+  ];
+
   const handleToggle = (id) => {
     setLocalProfile(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -103,8 +114,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, onS
   };
 
   const handleSave = async () => {
-    // onSave passed from HomeScreen handles AsyncStorage for profile
-    onSave && onSave(localProfile, localTheme);
+    onSave && onSave(localProfile, localTheme, localLanguage);
     onClose();
   };
 
@@ -188,6 +198,44 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, onS
             })}
 
             <Text style={[styles.sectionHeader, { marginTop: 10 }]}>VOICE ANNOUNCEMENTS</Text>
+
+            <View style={styles.sliderBox}>
+              <Text style={[styles.infoTitle, { fontSize: infoTitleSize, marginBottom: 8 }]}>Announcement language</Text>
+              <TouchableOpacity
+                style={styles.langSelected}
+                onPress={() => setLangDropdownOpen(prev => !prev)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.langSelectedText}>
+                  {languageOptions.find(l => l.id === localLanguage)?.flag}{' '}
+                  {languageOptions.find(l => l.id === localLanguage)?.title || 'English'}
+                </Text>
+                <Text style={styles.langChevron}>{langDropdownOpen ? '▲' : '▼'}</Text>
+              </TouchableOpacity>
+              {langDropdownOpen && (
+                <View style={styles.langDropdown}>
+                  {languageOptions.map(opt => {
+                    const isActive = localLanguage === opt.id;
+                    return (
+                      <TouchableOpacity
+                        key={opt.id}
+                        style={[styles.langOption, isActive && styles.langOptionActive]}
+                        onPress={() => {
+                          setLocalLanguage(opt.id);
+                          setLangDropdownOpen(false);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.langOptionText, isActive && styles.langOptionTextActive]}>
+                          {opt.flag}  {opt.title}
+                        </Text>
+                        {isActive && <Text style={styles.langCheck}>✓</Text>}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
             
             <View style={styles.sliderBox}>
               <View style={styles.sliderHeaderRow}>
@@ -399,5 +447,58 @@ const getStyles = (theme) => StyleSheet.create({
   clearBtnText: {
     color: '#cc4444',
     textAlign: 'center',
-  }
+  },
+  langSelected: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: theme.bgPrimary,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: theme.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  langSelectedText: {
+    color: theme.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  langChevron: {
+    color: theme.textSecondary,
+    fontSize: 12,
+  },
+  langDropdown: {
+    marginTop: 6,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: theme.border,
+    overflow: 'hidden',
+  },
+  langOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: theme.bgPrimary,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  langOptionActive: {
+    backgroundColor: theme.bgHero,
+  },
+  langOptionText: {
+    color: theme.textPrimary,
+    fontSize: 16,
+  },
+  langOptionTextActive: {
+    fontWeight: 'bold',
+    color: theme.accentBlue,
+  },
+  langCheck: {
+    color: theme.accentBlue,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
