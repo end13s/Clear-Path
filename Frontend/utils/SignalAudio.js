@@ -37,6 +37,12 @@ import male_rom_yellow from '../assets/audio/ro/male_rom_yellow.m4a';
 import male_rom_red from '../assets/audio/ro/male_rom_red.m4a';
 import male_rom_stop from '../assets/audio/ro/male_rom_stop.m4a';
 import male_rom_yield from '../assets/audio/ro/male_rom_yield.m4a';
+// Mandarin
+import fem_man_green from '../assets/audio/zh/fem_man_green.m4a';
+import fem_man_yellow from '../assets/audio/zh/fem_man_yellow.m4a';
+import fem_man_red from '../assets/audio/zh/fem_man_red.m4a';
+import fem_man_stop from '../assets/audio/zh/fem_man_stop.m4a';
+import fem_man_yield from '../assets/audio/zh/fem_man_yield.m4a';
 
 const audioMap = {
   en: {
@@ -87,6 +93,22 @@ const audioMap = {
       yield: male_rom_yield,
     },
   },
+  zh: {
+    fem: {
+      green: fem_man_green,
+      yellow: fem_man_yellow,
+      red: fem_man_red,
+      stop: fem_man_stop,
+      yield: fem_man_yield,
+    },
+    male: {
+      green: fem_man_green,
+      yellow: fem_man_yellow,
+      red: fem_man_red,
+      stop: fem_man_stop,
+      yield: fem_man_yield,
+    },
+  },
 };
 
 export async function playSignalAudio({ color, lang = 'en', gender = 'fem' }) {
@@ -107,11 +129,11 @@ export async function playSignalAudio({ color, lang = 'en', gender = 'fem' }) {
     // Fallback to TTS
     let ttsMsg = '';
     switch (color) {
-      case 'green': ttsMsg = lang === 'es' ? 'Verde' : lang === 'ro' ? 'Verde' : 'Green'; break;
-      case 'yellow': ttsMsg = lang === 'es' ? 'Amarillo' : lang === 'ro' ? 'Galben' : 'Yellow'; break;
-      case 'red': ttsMsg = lang === 'es' ? 'Rojo' : lang === 'ro' ? 'Roșu' : 'Red, come to a stop'; break;
-      case 'stop': ttsMsg = lang === 'es' ? 'Alto' : lang === 'ro' ? 'Stop' : 'Stop sign'; break;
-      case 'yield': ttsMsg = lang === 'es' ? 'Ceda el paso' : lang === 'ro' ? 'Cedează trecerea' : 'Yield sign'; break;
+      case 'green': ttsMsg = lang === 'zh' ? '绿灯' : lang === 'es' ? 'Verde' : lang === 'ro' ? 'Verde' : 'Green'; break;
+      case 'yellow': ttsMsg = lang === 'zh' ? '黄灯' : lang === 'es' ? 'Amarillo' : lang === 'ro' ? 'Galben' : 'Yellow'; break;
+      case 'red': ttsMsg = lang === 'zh' ? '红灯，请停车' : lang === 'es' ? 'Rojo' : lang === 'ro' ? 'Roșu' : 'Red, come to a stop'; break;
+      case 'stop': ttsMsg = lang === 'zh' ? '停车标志' : lang === 'es' ? 'Alto' : lang === 'ro' ? 'Stop' : 'Stop sign'; break;
+      case 'yield': ttsMsg = lang === 'zh' ? '让行标志' : lang === 'es' ? 'Ceda el paso' : lang === 'ro' ? 'Cedează trecerea' : 'Yield sign'; break;
       default: ttsMsg = color;
     }
     Speech.speak(ttsMsg, { language: lang });
