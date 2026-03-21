@@ -27,6 +27,8 @@ const YELLOW_CONFIRM_THRESHOLD = 0.75; // yellow is noisier — higher confidenc
 const YELLOW_MIN_STREAK = 5;           // and more consecutive frames required
 const STOP_CONFIRM_THRESHOLD = 0.55;   // stop sign confidence threshold
 const STOP_MIN_STREAK = 3;             // consecutive frames required for stop sign audio
+const PED_CONFIRM_THRESHOLD  = 0.60;   // pedestrian confidence threshold
+const PED_MIN_STREAK         = 3;      // consecutive frames required for pedestrian audio
 
 const HomeIcon = ({ size, color }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -63,6 +65,7 @@ export default function CameraScreen() {
   const [activeSignal, setActiveSignal]   = useState(null);
   const [activeConfidence, setActiveConfidence] = useState(0);
   const [activeStopConf, setActiveStopConf] = useState(0);
+  const [activePedConf, setActivePedConf]   = useState(0);
   const [bannerMessage, setBannerMessage] = useState(null);
 
   // Demo mode state
@@ -80,6 +83,8 @@ export default function CameraScreen() {
   const colorStreakRef   = useRef(0);    // consecutive same-color detection count
   const stopStreakRef    = useRef(0);    // consecutive stop sign detection count
   const lastStopRef      = useRef(false); // has audio fired for current stop sign sighting
+  const pedStreakRef     = useRef(0);    // consecutive pedestrian detection count
+  const lastPedRef       = useRef(false); // has audio fired for current pedestrian sighting
 
   const [userGender, setUserGender] = useState('fem');
   const togglesRef = useRef(toggles);
@@ -132,6 +137,19 @@ export default function CameraScreen() {
     }
   }, [activeStopConf, language, userGender]);
 
+  // Play pedestrian audio once per sighting
+  useEffect(() => {
+    if (!activePedConf) { lastPedRef.current = false; return; }
+    if (
+      activePedConf >= PED_CONFIRM_THRESHOLD &&
+      pedStreakRef.current >= PED_MIN_STREAK &&
+      !lastPedRef.current
+    ) {
+      playSignalAudio({ color: 'pedestrian', lang: language, gender: userGender });
+      lastPedRef.current = true;
+    }
+  }, [activePedConf, language, userGender]);
+
   // Switch polling loop when demo mode or selected video changes
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -146,6 +164,8 @@ export default function CameraScreen() {
       colorStreakRef.current = 0;
       stopStreakRef.current = 0;
       lastStopRef.current = false;
+      pedStreakRef.current = 0;
+      lastPedRef.current = false;
       videoPositionRef.current = 0;
       intervalRef.current = setInterval(fetchDemoDetect, DEMO_DETECT_INTERVAL_MS);
     }
@@ -198,6 +218,17 @@ export default function CameraScreen() {
       stopStreakRef.current = 0;
       lastStopRef.current = false;
       setActiveStopConf(0);
+    }
+
+    // Pedestrian tracking
+    const pedItem = transformed.find(item => item.class_name === 'person');
+    if (pedItem && togglesRef.current.hazards) {
+      pedStreakRef.current += 1;
+      setActivePedConf(pedItem.confidence);
+    } else {
+      pedStreakRef.current = 0;
+      lastPedRef.current = false;
+      setActivePedConf(0);
     }
   };
 

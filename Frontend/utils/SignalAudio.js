@@ -134,6 +134,7 @@ export async function playSignalAudio({ color, lang = 'en', gender = 'fem' }) {
       case 'red': ttsMsg = lang === 'zh' ? '红灯，请停车' : lang === 'es' ? 'Rojo' : lang === 'ro' ? 'Roșu' : 'Red, come to a stop'; break;
       case 'stop': ttsMsg = lang === 'zh' ? '停车标志' : lang === 'es' ? 'Alto' : lang === 'ro' ? 'Stop' : 'Stop sign'; break;
       case 'yield': ttsMsg = lang === 'zh' ? '让行标志' : lang === 'es' ? 'Ceda el paso' : lang === 'ro' ? 'Cedează trecerea' : 'Yield sign'; break;
+      case 'pedestrian': ttsMsg = lang === 'zh' ? '注意行人' : lang === 'es' ? 'Peatón detectado' : lang === 'ro' ? 'Pieton detectat' : 'Pedestrian detected'; break;
       default: ttsMsg = color;
     }
     Speech.speak(ttsMsg, { language: lang });
