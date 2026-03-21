@@ -155,7 +155,7 @@ const getStyles = (theme, isElderly) => StyleSheet.create({
   },
   title: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 20
   },
   scroll: {
@@ -182,11 +182,12 @@ const getStyles = (theme, isElderly) => StyleSheet.create({
   },
   itemTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 4
   },
   itemDesc: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
   },
   expandHeader: {
     flexDirection: 'row',
@@ -202,12 +203,12 @@ const getStyles = (theme, isElderly) => StyleSheet.create({
   },
   expandTitle: {
     color: isElderly ? theme.bgPrimary : theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: isElderly ? 20 : 17, // Made it more prominent per user request
   },
   expandChevron: {
     color: isElderly ? theme.bgPrimary : theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 20,
   },
   expandedContent: {
@@ -231,7 +232,7 @@ const getStyles = (theme, isElderly) => StyleSheet.create({
   },
   gotItText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold'
+    fontFamily: 'Lexend_700Bold'
   },
   scrollHint: {
     position: 'absolute',
@@ -250,7 +251,7 @@ const getStyles = (theme, isElderly) => StyleSheet.create({
   },
   scrollHintText: {
     color: theme.textSecondary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: isElderly ? 14 : 12,
   }
 });

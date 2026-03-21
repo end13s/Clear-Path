@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Modal, ScrollView, TouchableOpacity, Dimensions, Alert, TouchableWithoutFeedback } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -57,10 +58,10 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
   const infoTitleSize = isElderly ? 20 : 17;
 
   const options = [
-    { id: 'colorBlind', icon: '🔴', title: 'Color blindness' },
-    { id: 'lowVision', icon: '👁️', title: 'Low vision' },
-    { id: 'elderly', icon: '👴', title: 'Age-related changes' },
-    { id: 'hearingDifficulty', icon: '📢', title: 'Hearing difficulty' }
+    { id: 'colorBlind', iconName: 'eye-outline', iconSize: 22, title: 'Color blindness' },
+    { id: 'lowVision', iconName: 'glasses-outline', iconSize: 22, title: 'Low vision' },
+    { id: 'elderly', iconName: 'person-outline', iconSize: 22, title: 'Age-related changes' },
+    { id: 'hearingDifficulty', iconName: 'ear-outline', iconSize: 22, title: 'Hearing difficulty' }
   ];
 
   const themeOptions = [
@@ -190,7 +191,9 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
                   onPress={() => handleToggle(opt.id)}
                 >
                   <View style={styles.cardLeft}>
-                    <Text style={styles.cardIcon}>{opt.icon}</Text>
+                    <View style={styles.cardIconContainer}>
+                      <Ionicons name={opt.iconName} size={opt.iconSize} color={theme.textPrimary} />
+                    </View>
                     <Text style={[styles.cardTitle, { fontSize: optionTitleSize }]}>{opt.title}</Text>
                   </View>
                   <View style={[styles.radio, selected && styles.radioSelected]}>
@@ -213,7 +216,9 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
                   {languageOptions.find(l => l.id === localLanguage)?.flag}{' '}
                   {languageOptions.find(l => l.id === localLanguage)?.title || 'English'}
                 </Text>
-                <Text style={styles.langChevron}>{langDropdownOpen ? '▲' : '▼'}</Text>
+                <View style={styles.langChevronContainer}>
+                  <Ionicons name={langDropdownOpen ? "chevron-up-outline" : "chevron-down-outline"} size={16} color={theme.textPrimary} />
+                </View>
               </TouchableOpacity>
               {langDropdownOpen && (
                 <View style={styles.langDropdown}>
@@ -328,7 +333,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   genderBtnText: {
     color: theme.accentBlue,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 16,
   },
   genderBtnTextSelected: {
@@ -351,11 +356,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   title: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 4
   },
   subtitle: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     marginBottom: 20
   },
   scroll: {
@@ -363,8 +369,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionHeader: {
     color: theme.textMuted,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 12,
-    fontWeight: 'bold',
     letterSpacing: 1,
     marginBottom: 10,
     marginTop: 5
@@ -391,7 +397,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   themeCardText: {
     color: theme.textSecondary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     textAlign: 'center',
   },
   themeCardTextSelected: {
@@ -419,9 +425,14 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 18,
     marginRight: 12
   },
+  cardIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   cardTitle: {
     color: theme.textPrimary,
-    fontWeight: '600'
+    fontFamily: 'Lexend_600SemiBold'
   },
   radio: {
     width: 20,
@@ -443,7 +454,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   infoTitle: {
     color: theme.textPrimary,
-    fontWeight: '500'
+    fontFamily: 'Lexend_400Regular'
   },
   sliderBox: {
     backgroundColor: theme.bgCard,
@@ -459,8 +470,8 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 10,
   },
   infoLabel: {
+    fontFamily: 'Lexend_700Bold',
     fontSize: 12,
-    fontWeight: 'bold',
   },
   slider: {
     width: '100%',
@@ -477,7 +488,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   saveBtnText: {
     color: theme.bgPrimary, 
-    fontWeight: 'bold'
+    fontFamily: 'Lexend_700Bold'
   },
   clearBtn: {
     marginTop: 18,
@@ -486,6 +497,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   clearBtnText: {
     color: '#cc4444',
+    fontFamily: 'Lexend_400Regular',
     textAlign: 'center',
   },
   langSelected: {
@@ -501,12 +513,17 @@ const getStyles = (theme) => StyleSheet.create({
   },
   langSelectedText: {
     color: theme.textPrimary,
+    fontFamily: 'Lexend_600SemiBold',
     fontSize: 16,
-    fontWeight: '600',
   },
   langChevron: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     fontSize: 12,
+  },
+  langChevronContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   langDropdown: {
     marginTop: 6,
@@ -530,15 +547,16 @@ const getStyles = (theme) => StyleSheet.create({
   },
   langOptionText: {
     color: theme.textPrimary,
+    fontFamily: 'Lexend_400Regular',
     fontSize: 16,
   },
   langOptionTextActive: {
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     color: theme.accentBlue,
   },
   langCheck: {
     color: theme.accentBlue,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });

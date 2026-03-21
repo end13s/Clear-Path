@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,11 +18,11 @@ export default function OnboardingScreen({ navigation }) {
   });
 
   const options = [
-    { id: 'colorBlind', icon: '🔴', title: 'Color blindness', subtitle: 'Difficulty distinguishing red, green, or other colors' },
-    { id: 'lowVision', icon: '👁️', title: 'Low vision', subtitle: 'Difficulty seeing clearly, even with glasses' },
-    { id: 'elderly', icon: '👴', title: 'Age-related changes', subtitle: 'Slower reaction time, need larger text and clearer cues' },
-    { id: 'hearingDifficulty', icon: '📢', title: 'Hearing difficulty', subtitle: 'Need louder or slower voice announcements' },
-    { id: 'none', icon: '✅', title: 'None of the above', subtitle: 'Use standard settings' }
+    { id: 'colorBlind', iconName: 'eye-outline', iconSize: 22, title: 'Color blindness', subtitle: 'Difficulty distinguishing red, green, or other colors' },
+    { id: 'lowVision', iconName: 'glasses-outline', iconSize: 22, title: 'Low vision', subtitle: 'Difficulty seeing clearly, even with glasses' },
+    { id: 'elderly', iconName: 'person-outline', iconSize: 22, title: 'Age-related changes', subtitle: 'Slower reaction time, need larger text and clearer cues' },
+    { id: 'hearingDifficulty', iconName: 'ear-outline', iconSize: 22, title: 'Hearing difficulty', subtitle: 'Need louder or slower voice announcements' },
+    { id: 'none', iconName: 'checkmark-circle-outline', iconSize: 22, title: 'None of the above', subtitle: 'Use standard settings' }
   ];
 
   const handleToggle = (id) => {
@@ -90,7 +91,9 @@ export default function OnboardingScreen({ navigation }) {
 
                 <View style={styles.cardContent}>
                   <View style={styles.titleRow}>
-                    <Text style={styles.icon}>{opt.icon}</Text>
+                    <View style={styles.iconContainer}>
+                      <Ionicons name={opt.iconName} size={opt.iconSize} color={theme.textPrimary} />
+                    </View>
                     <Text style={styles.cardTitle}>{opt.title}</Text>
                   </View>
                   <Text style={styles.cardSubtitle}>{opt.subtitle}</Text>
@@ -121,11 +124,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   logoTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 35,
   },
   logoTagline: {
     color: theme.accentBlue,
+    fontFamily: 'Lexend_400Regular',
     fontStyle: 'italic',
     fontSize: 16,
     marginTop: 4,
@@ -136,12 +140,13 @@ const getStyles = (theme) => StyleSheet.create({
   },
   heading: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 21,
     marginBottom: 6,
   },
   subtext: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     fontSize: 17,
     marginBottom: 24,
   },
@@ -178,8 +183,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   checkmark: {
     color: theme.bgPrimary,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 14,
-    fontWeight: 'bold',
   },
   cardContent: {
     flex: 1,
@@ -193,13 +198,19 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 18,
     marginRight: 8,
   },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
   cardTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 18,
   },
   cardSubtitle: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_600SemiBold',
     fontSize: 16,
   },
   footer: {
@@ -213,7 +224,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   continueBtnText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 20,
   },
 });

@@ -149,11 +149,11 @@ const getStyles = (theme, isHighContrast) => StyleSheet.create({
     justifyContent: 'center',
   },
   statusText: {
-    fontWeight: '900',
+    fontFamily: 'Lexend_700Bold',
   },
   confidenceText: {
     color: '#AAAAAA',
-    fontWeight: '600',
+    fontFamily: 'Lexend_600SemiBold',
     marginTop: 2,
   },
 });
