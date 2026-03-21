@@ -199,6 +199,15 @@ export default function CameraScreen() {
       lastStopRef.current = false;
       setActiveStopConf(0);
     }
+
+    // Pedestrian detection audio
+    const pedestrianItem = transformed.find(item => item.class_name && item.class_name.toLowerCase().includes('person'));
+    if (pedestrianItem && togglesRef.current.hazards) {
+      if (!handleDetectionData.lastPedestrianFired || Date.now() - handleDetectionData.lastPedestrianFired > 3000) {
+        playSignalAudio({ color: 'pedestrian', lang: language, gender: userGender });
+        handleDetectionData.lastPedestrianFired = Date.now();
+      }
+    }
   };
 
   // ── Live camera frame capture ──────────────────────────────────────────────
