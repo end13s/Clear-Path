@@ -10,6 +10,7 @@ import TrafficLightIndicator from '../components/TrafficLightIndicator';
 import ToggleStrip from '../components/ToggleStrip';
 import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
+import { playSignalAudio } from '../utils/SignalAudio';
 
 const BACKEND_IP = '153.106.91.39';
 const WS_URL = `ws://${BACKEND_IP}:8000/ws`;
@@ -31,10 +32,16 @@ export default function CameraScreen() {
   const [detections, setDetections] = useState([]);
   const [activeSignal, setActiveSignal] = useState(null);
   const [bannerMessage, setBannerMessage] = useState(null);
-  
+
   const cameraRef = useRef(null);
   const socketRef = useRef(null);
   const intervalRef = useRef(null);
+
+  // Track last announced signal to avoid repeats
+  const lastSignalRef = useRef(null);
+  // Track user language and gender (default to 'en' and 'fem')
+  const [userLang, setUserLang] = useState('en');
+  const [userGender, setUserGender] = useState('fem');
 
   const togglesRef = useRef(toggles);
   useEffect(() => {
@@ -46,6 +53,25 @@ export default function CameraScreen() {
       requestPermission();
     }
   }, [permission]);
+
+  // Load language/gender from profile or AsyncStorage if available
+  useEffect(() => {
+    if (profile) {
+      if (profile.language) setUserLang(profile.language);
+      if (profile.gender) setUserGender(profile.gender);
+    }
+  }, [profile]);
+
+  // Play audio when activeSignal changes
+  useEffect(() => {
+    if (activeSignal && lastSignalRef.current !== activeSignal) {
+      playSignalAudio({ color: activeSignal, lang: userLang, gender: userGender });
+      lastSignalRef.current = activeSignal;
+    }
+    if (!activeSignal) {
+      lastSignalRef.current = null;
+    }
+  }, [activeSignal, userLang, userGender]);
 
   useEffect(() => {
     const initSocket = () => {
