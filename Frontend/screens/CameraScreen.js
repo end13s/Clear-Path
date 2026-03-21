@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Video, ResizeMode } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import BoundingBoxOverlay from '../components/BoundingBoxOverlay';
@@ -11,9 +12,21 @@ import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
 import { playSignalAudio } from '../utils/SignalAudio';
 
-const BACKEND_IP = '153.106.84.77';
-const DETECT_URL = `http://${BACKEND_IP}:8000/detect/frame`;
-const FRAME_INTERVAL_MS = 200; // ~5 fps
+const BACKEND_IP  = '153.106.84.77';
+const DETECT_URL  = `http://${BACKEND_IP}:8000/detect/frame`;
+const DEMO_DETECT = `http://${BACKEND_IP}:8000/demo/detect`;
+const VIDEOS_URL  = `http://${BACKEND_IP}:8000/demo/videos`;
+const VIDEO_BASE  = `http://${BACKEND_IP}:8000/videos`;
+const FRAME_INTERVAL_MS       = 200;
+const DEMO_DETECT_INTERVAL_MS = 80;  // fire often; isProcessingRef limits actual rate to YOLO speed
+const CONFIRM_THRESHOLD = 0.50;        // minimum smoothed confidence (green)
+const MIN_STREAK_FOR_AUDIO = 2;        // consecutive same-color detections (green)
+const RED_CONFIRM_THRESHOLD = 0.45;    // red is safety-critical — fire earlier
+const RED_MIN_STREAK = 2;              // fewer consecutive frames needed for red
+const YELLOW_CONFIRM_THRESHOLD = 0.75; // yellow is noisier — higher confidence required
+const YELLOW_MIN_STREAK = 5;           // and more consecutive frames required
+const STOP_CONFIRM_THRESHOLD = 0.55;   // stop sign confidence threshold
+const STOP_MIN_STREAK = 3;             // consecutive frames required for stop sign audio
 
 const HomeIcon = ({ size, color }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -22,9 +35,6 @@ const HomeIcon = ({ size, color }) => (
   </Svg>
 );
 
-// Convert API detections → BoundingBoxOverlay format:
-//   label → class_name
-//   bbox [x, y, w, h] absolute pixels → [x1, y1, x2, y2] normalized 0-1
 function transformDetections(detections, frameWidth, frameHeight) {
   return detections.map(d => {
     const [x, y, w, h] = d.bbox;
@@ -48,138 +58,193 @@ export default function CameraScreen() {
   const theme = THEMES[themeKey] || THEMES.dark;
 
   const [permission, requestPermission] = useCameraPermissions();
-  const [isConnected, setIsConnected] = useState(false);
-  const [detections, setDetections] = useState([]);
-  const [activeSignal, setActiveSignal] = useState(null);
+  const [isConnected, setIsConnected]     = useState(false);
+  const [detections, setDetections]       = useState([]);
+  const [activeSignal, setActiveSignal]   = useState(null);
+  const [activeConfidence, setActiveConfidence] = useState(0);
+  const [activeStopConf, setActiveStopConf] = useState(0);
   const [bannerMessage, setBannerMessage] = useState(null);
 
-  // Debug overlay state
-  const [debugInfo, setDebugInfo] = useState({
-    cameraReady: false,
-    fnCalls: 0,
-    framesSent: 0,
-    lastStatus: '—',
-    lastDetectionCount: 0,
-  });
+  // Demo mode state
+  const [isDemoMode, setIsDemoMode]       = useState(false);
+  const [demoVideos, setDemoVideos]       = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState('red1.mp4');
+  const [showVideoList, setShowVideoList] = useState(false);
+  const videoPositionRef = useRef(0); // current playback position in ms
 
-  const cameraRef = useRef(null);
-  const intervalRef = useRef(null);
-  const isProcessingRef = useRef(false); // prevents overlapping requests
-  const framesSentRef = useRef(0);
-  const fnCallsRef = useRef(0);
+  const cameraRef      = useRef(null);
+  const intervalRef    = useRef(null);
+  const isProcessingRef = useRef(false);
+  const lastSignalRef    = useRef(null);
+  const detectedColorRef = useRef(null); // last color seen from backend
+  const colorStreakRef   = useRef(0);    // consecutive same-color detection count
+  const stopStreakRef    = useRef(0);    // consecutive stop sign detection count
+  const lastStopRef      = useRef(false); // has audio fired for current stop sign sighting
 
-  // Track last announced signal to avoid repeats
-  const lastSignalRef = useRef(null);
-  // Track user gender (default to 'fem')
   const [userGender, setUserGender] = useState('fem');
-
   const togglesRef = useRef(toggles);
-  useEffect(() => {
-    togglesRef.current = toggles;
-  }, [toggles]);
+  useEffect(() => { togglesRef.current = toggles; }, [toggles]);
 
   useEffect(() => {
-    if (!permission) {
-      requestPermission();
-    }
+    if (!permission) requestPermission();
   }, [permission]);
 
-  // Load gender from profile if available
   useEffect(() => {
-    if (profile) {
-      if (profile.gender) setUserGender(profile.gender);
-    }
+    if (profile?.gender) setUserGender(profile.gender);
   }, [profile]);
 
-  // Play audio when activeSignal changes
+  // Fetch available demo videos once on mount
   useEffect(() => {
-    if (activeSignal && lastSignalRef.current !== activeSignal) {
+    fetch(VIDEOS_URL)
+      .then(r => r.json())
+      .then(data => setDemoVideos(data.videos || []))
+      .catch(() => {});
+  }, []);
+
+  // Play audio once when confidence first crosses threshold for the current signal
+  useEffect(() => {
+    if (!activeSignal) { lastSignalRef.current = null; return; }
+    const isYellow = activeSignal === 'yellow';
+    const isRed    = activeSignal === 'red';
+    const threshold = isRed ? RED_CONFIRM_THRESHOLD : isYellow ? YELLOW_CONFIRM_THRESHOLD : CONFIRM_THRESHOLD;
+    const minStreak = isRed ? RED_MIN_STREAK        : isYellow ? YELLOW_MIN_STREAK        : MIN_STREAK_FOR_AUDIO;
+
+    if (
+      activeConfidence >= threshold &&
+      colorStreakRef.current >= minStreak &&
+      lastSignalRef.current !== activeSignal
+    ) {
       playSignalAudio({ color: activeSignal, lang: language, gender: userGender });
       lastSignalRef.current = activeSignal;
     }
-    if (!activeSignal) {
-      lastSignalRef.current = null;
-    }
-  }, [activeSignal, language, userGender]);
+  }, [activeSignal, activeConfidence, language, userGender]);
 
+  // Play stop sign audio once per sighting
   useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+    if (!activeStopConf) { lastStopRef.current = false; return; }
+    if (
+      activeStopConf >= STOP_CONFIRM_THRESHOLD &&
+      stopStreakRef.current >= STOP_MIN_STREAK &&
+      !lastStopRef.current
+    ) {
+      playSignalAudio({ color: 'stop', lang: language, gender: userGender });
+      lastStopRef.current = true;
+    }
+  }, [activeStopConf, language, userGender]);
+
+  // Switch polling loop when demo mode or selected video changes
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    isProcessingRef.current = false;
+
+    if (isDemoMode) {
+      setDetections([]);
+      setActiveSignal(null);
+      setActiveConfidence(0);
+      lastSignalRef.current = null;
+      detectedColorRef.current = null;
+      colorStreakRef.current = 0;
+      stopStreakRef.current = 0;
+      lastStopRef.current = false;
+      videoPositionRef.current = 0;
+      intervalRef.current = setInterval(fetchDemoDetect, DEMO_DETECT_INTERVAL_MS);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isDemoMode, selectedVideo]);
 
   const handleCameraReady = () => {
-    setDebugInfo(prev => ({ ...prev, cameraReady: true }));
-    intervalRef.current = setInterval(captureAndSendFrame, FRAME_INTERVAL_MS);
+    if (!isDemoMode) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(captureAndSendFrame, FRAME_INTERVAL_MS);
+    }
   };
 
-  const captureAndSendFrame = async () => {
-    fnCallsRef.current += 1;
-    setDebugInfo(prev => ({ ...prev, fnCalls: fnCallsRef.current }));
-    if (!cameraRef.current || isProcessingRef.current) return;
+  const handleDetectionData = (data) => {
+    const transformed = transformDetections(data.detections, data.frame_width, data.frame_height);
+    setDetections(transformed);
 
+    const signalItem = transformed.find(item => item.class_name.includes('light'));
+    if (signalItem && togglesRef.current.trafficLights) {
+      const cn = signalItem.class_name.toLowerCase();
+      let color = null;
+      if (cn.includes('green'))       color = 'green';
+      else if (cn.includes('yellow')) color = 'yellow';
+      else if (cn.includes('red'))    color = 'red';
+
+      if (color) {
+        // Track consecutive same-color streak for false-positive protection
+        if (color === detectedColorRef.current) {
+          colorStreakRef.current += 1;
+        } else {
+          detectedColorRef.current = color;
+          colorStreakRef.current = 1;
+        }
+        setActiveSignal(color);
+        setActiveConfidence(signalItem.confidence);
+      }
+    } else {
+      detectedColorRef.current = null;
+      colorStreakRef.current = 0;
+      setActiveSignal(null);
+      setActiveConfidence(0);
+    }
+
+    // Stop sign tracking
+    const stopItem = transformed.find(item => item.class_name === 'stop_sign');
+    if (stopItem && togglesRef.current.signs) {
+      stopStreakRef.current += 1;
+      setActiveStopConf(stopItem.confidence);
+    } else {
+      stopStreakRef.current = 0;
+      lastStopRef.current = false;
+      setActiveStopConf(0);
+    }
+  };
+
+  // ── Live camera frame capture ──────────────────────────────────────────────
+  const captureAndSendFrame = async () => {
+    if (!cameraRef.current || isProcessingRef.current) return;
     isProcessingRef.current = true;
     try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.3,
-      });
-
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
       const formData = new FormData();
-      formData.append('file', {
-        uri: photo.uri,
-        name: 'frame.jpg',
-        type: 'image/jpeg',
-      });
-
-      const response = await fetch(DETECT_URL, {
-        method: 'POST',
-        body: formData,
-      });
-
+      formData.append('file', { uri: photo.uri, name: 'frame.jpg', type: 'image/jpeg' });
+      const response = await fetch(DETECT_URL, { method: 'POST', body: formData });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
       const data = await response.json();
       setIsConnected(true);
-      framesSentRef.current += 1;
-
-      const transformed = transformDetections(
-        data.detections,
-        data.frame_width,
-        data.frame_height,
-      );
-      setDetections(transformed);
-      setDebugInfo(prev => ({
-        ...prev,
-        framesSent: framesSentRef.current,
-        lastStatus: 'OK',
-        lastDetectionCount: data.detections.length,
-      }));
-
-      const signalItem = transformed.find(item => item.class_name.includes('light'));
-      if (signalItem && togglesRef.current.trafficLights) {
-        const cn = signalItem.class_name.toLowerCase();
-        if (cn.includes('green')) setActiveSignal('green');
-        else if (cn.includes('yellow')) setActiveSignal('yellow');
-        else if (cn.includes('red')) setActiveSignal('red');
-      } else {
-        setActiveSignal(null);
-      }
+      handleDetectionData(data);
     } catch (err) {
       setIsConnected(false);
-      setDebugInfo(prev => ({ ...prev, lastStatus: err.message }));
       console.warn('Detection request failed:', err.message);
     } finally {
       isProcessingRef.current = false;
     }
   };
 
-  const handleToggle = (id, val) => {
-    updateToggle(id, val);
+  // ── Demo detection fetch (no image — video plays natively) ────────────────
+  const fetchDemoDetect = async () => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+    try {
+      const pos = videoPositionRef.current;
+      const url = `${DEMO_DETECT}?video=${encodeURIComponent(selectedVideo)}&position_ms=${pos}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      setIsConnected(true);
+      handleDetectionData(data);
+    } catch (err) {
+      setIsConnected(false);
+      console.warn('Demo detect failed:', err.message);
+    } finally {
+      isProcessingRef.current = false;
+    }
   };
 
-  if (!permission) {
-    return <View style={getStyles(theme).container} />;
-  }
+  const handleToggle = (id, val) => updateToggle(id, val);
+
+  if (!permission) return <View style={getStyles(theme).container} />;
   if (!permission.granted) {
     return (
       <View style={[getStyles(theme).container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -189,42 +254,93 @@ export default function CameraScreen() {
   }
 
   const styles = getStyles(theme);
-
-  const isElderly = profile?.elderly || profile?.lowVision;
+  const isElderly   = profile?.elderly || profile?.lowVision;
   const homeBtnSize = isElderly ? 60 : 48;
   const homeIconSize = isElderly ? 26 : 20;
 
   return (
     <View style={styles.container}>
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        facing="back"
-        onCameraReady={handleCameraReady}
-      />
+
+      {/* ── Background: live camera OR demo video ── */}
+      {isDemoMode ? (
+        <Video
+          source={{ uri: `${VIDEO_BASE}/${selectedVideo}` }}
+          style={styles.camera}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
+          onPlaybackStatusUpdate={status => {
+            if (status.isLoaded) {
+              videoPositionRef.current = status.positionMillis ?? 0;
+            }
+          }}
+        />
+      ) : (
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing="back"
+          mute={true}
+          onCameraReady={handleCameraReady}
+        />
+      )}
 
       <BoundingBoxOverlay detections={detections} toggles={toggles} profile={profile} theme={theme} themeKey={themeKey} />
 
       {!isConnected && (
         <View style={styles.reconnectBadge}>
-          <Text style={styles.reconnectText}>Reconnecting...</Text>
+          <Text style={styles.reconnectText}>Reconnecting…</Text>
         </View>
       )}
 
       <AnnouncementBanner message={bannerMessage} profile={profile} theme={theme} />
-      <TrafficLightIndicator signal={activeSignal} profile={profile} theme={theme} themeKey={themeKey} />
+      <TrafficLightIndicator signal={activeSignal} confidence={activeConfidence} profile={profile} theme={theme} themeKey={themeKey} />
       <ToggleStrip toggles={toggles} onToggle={handleToggle} profile={profile} theme={theme} />
 
-      {/* Debug Overlay */}
-      <View style={styles.debugOverlay} pointerEvents="none">
-        <Text style={styles.debugText}>Camera: {debugInfo.cameraReady ? '✓ Ready' : '✗ Not Ready'}</Text>
-        <Text style={styles.debugText}>Fn calls: {debugInfo.fnCalls}</Text>
-        <Text style={styles.debugText}>Frames sent: {debugInfo.framesSent}</Text>
-        <Text style={styles.debugText}>Last POST: {debugInfo.lastStatus}</Text>
-        <Text style={styles.debugText}>Detections: {debugInfo.lastDetectionCount}</Text>
+      {/* ── Demo controls ── */}
+      <View style={styles.demoBar} pointerEvents="box-none">
+        {/* Demo toggle */}
+        <TouchableOpacity
+          style={[styles.demoBtn, isDemoMode && styles.demoBtnActive]}
+          onPress={() => { setShowVideoList(false); setIsDemoMode(v => !v); }}
+        >
+          <Text style={styles.demoBtnText}>{isDemoMode ? 'LIVE' : 'DEMO'}</Text>
+        </TouchableOpacity>
+
+        {/* Video picker (only in demo mode) */}
+        {isDemoMode && (
+          <TouchableOpacity
+            style={styles.videoPickerBtn}
+            onPress={() => setShowVideoList(v => !v)}
+          >
+            <Text style={styles.videoPickerText} numberOfLines={1}>
+              {selectedVideo.replace('.mp4', '')}  ▾
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Home Button Container */}
+      {/* ── Video list dropdown ── */}
+      {showVideoList && (
+        <View style={styles.videoList}>
+          <ScrollView>
+            {demoVideos.map(v => (
+              <TouchableOpacity
+                key={v}
+                style={[styles.videoItem, v === selectedVideo && styles.videoItemActive]}
+                onPress={() => { setSelectedVideo(v); setShowVideoList(false); }}
+              >
+                <Text style={[styles.videoItemText, v === selectedVideo && styles.videoItemTextActive]}>
+                  {v.replace('.mp4', '')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* ── Home button ── */}
       <View style={styles.homeButtonContainer} pointerEvents="box-none">
         <TouchableOpacity
           style={[styles.homeBtn, { width: homeBtnSize, height: homeBtnSize }]}
@@ -239,13 +355,8 @@ export default function CameraScreen() {
 }
 
 const getStyles = (theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.bgPrimary,
-  },
-  camera: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  container: { flex: 1, backgroundColor: theme.bgPrimary },
+  camera:    { ...StyleSheet.absoluteFillObject },
   reconnectBadge: {
     position: 'absolute',
     top: 60,
@@ -256,29 +367,71 @@ const getStyles = (theme) => StyleSheet.create({
     borderRadius: 20,
     zIndex: 100,
   },
-  reconnectText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+  reconnectText: { color: '#FFFFFF', fontWeight: 'bold' },
+
+  // Demo controls bar — bottom-right above toggle strip
+  demoBar: {
+    position: 'absolute',
+    bottom: 90,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    zIndex: 300,
   },
+  demoBtn: {
+    backgroundColor: 'rgba(13,27,42,0.85)',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  demoBtnActive: {
+    backgroundColor: theme.accentBlue || '#0A84FF',
+    borderColor: theme.accentBlue || '#0A84FF',
+  },
+  demoBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+  videoPickerBtn: {
+    backgroundColor: 'rgba(13,27,42,0.85)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+    maxWidth: 150,
+  },
+  videoPickerText: { color: '#FFFFFF', fontSize: 12 },
+
+  // Video dropdown list
+  videoList: {
+    position: 'absolute',
+    bottom: 130,
+    right: 16,
+    width: 200,
+    maxHeight: 260,
+    backgroundColor: theme.bgCard || '#1C1C2E',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.border,
+    zIndex: 400,
+    overflow: 'hidden',
+  },
+  videoItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  videoItemActive: { backgroundColor: theme.accentBlue || '#0A84FF' },
+  videoItemText: { color: theme.textPrimary, fontSize: 13 },
+  videoItemTextActive: { fontWeight: '700' },
+
   homeButtonContainer: {
     position: 'absolute',
     left: 16,
     bottom: 24,
     zIndex: 200,
-  },
-  debugOverlay: {
-    position: 'absolute',
-    top: 60,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    padding: 8,
-    borderRadius: 8,
-    zIndex: 300,
-  },
-  debugText: {
-    color: '#00FF88',
-    fontSize: 11,
-    fontFamily: 'monospace',
   },
   homeBtn: {
     backgroundColor: 'rgba(13,27,42,0.9)',

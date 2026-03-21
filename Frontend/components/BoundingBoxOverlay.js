@@ -26,7 +26,7 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
   const { width: screenW, height: screenH } = useWindowDimensions();
 
   const renderFocalPoint = (item, idx) => {
-    const { bbox, class_name } = item;
+    const { bbox, class_name, confidence } = item;
     if (!bbox || bbox.length !== 4) return null;
     if (!toggles.trafficLights) return null;
 
@@ -44,7 +44,9 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
     const signalColor = SIGNAL_COLORS[class_name] || SIGNAL_COLORS.traffic_light;
     const ringStroke = isHighContrast ? strokeW + 2 : strokeW + 1;
 
-    const displayText = isColorBlind ? class_name.toUpperCase() : class_name;
+    const pct = confidence ? ` ${Math.round(confidence * 100)}%` : '';
+    const label = isColorBlind ? class_name.toUpperCase() : class_name;
+    const displayText = label + pct;
     const pWidth = displayText.length * charWidthMultiplier + 16;
     const pHeight = isElderly ? 34 : 26;
 
@@ -88,7 +90,7 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
   };
 
   const renderBox = (item, idx) => {
-    const { bbox, class_name } = item;
+    const { bbox, class_name, confidence } = item;
     if (!bbox || bbox.length !== 4) return null;
 
     const sx1 = bbox[0] * screenW;
@@ -111,7 +113,9 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
       return null;
     }
 
-    const displayText = isColorBlind ? class_name.toUpperCase() : class_name;
+    const pct = (lowerName.includes('stop') || lowerName.includes('yield')) && confidence
+      ? ` ${Math.round(confidence * 100)}%` : '';
+    const displayText = (isColorBlind ? class_name.toUpperCase() : class_name) + pct;
     const pWidth = displayText.length * charWidthMultiplier + 16;
     const pHeight = isElderly ? 34 : 26;
 

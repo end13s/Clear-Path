@@ -12,3 +12,10 @@ class DetectionResponse(BaseModel):
     detections: list[Detection]
     frame_width: int
     frame_height: int
+
+
+class DemoFrameResponse(BaseModel):
+    detections: list[Detection]
+    frame_width: int
+    frame_height: int
+    frame_b64: str        # JPEG frame encoded as base64 for display on the phone

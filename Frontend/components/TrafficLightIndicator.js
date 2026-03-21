@@ -61,42 +61,44 @@ const SignalDot = ({ color, active, isColorBlind, shape, isHighContrast, theme }
   );
 };
 
-export default function TrafficLightIndicator({ signal, profile, themeKey, theme }) {
+export default function TrafficLightIndicator({ signal, confidence, profile, themeKey, theme }) {
   const isElderly = profile?.elderly || profile?.lowVision;
   const isColorBlind = profile?.colorBlind && !isElderly;
-  const indicatorHeight = isElderly ? 96 : 80;
+  const indicatorHeight = isElderly ? 110 : 92;
   const indicatorFontSize = isElderly ? 36 : 30;
+  const confidenceFontSize = isElderly ? 15 : 13;
   const isHighContrast = themeKey === 'highContrast';
 
   if (!theme) return null;
 
   const styles = getStyles(theme, isHighContrast);
+  const pct = confidence > 0 ? `${Math.round(confidence * 100)}%` : null;
 
   return (
     <View style={[styles.container, { height: indicatorHeight }]} pointerEvents="none">
       <View style={styles.colorStrip}>
-        <SignalDot 
-          color={theme.signalRed} 
-          active={signal === 'red'} 
-          isColorBlind={isColorBlind} 
-          shape="circle" 
-          isHighContrast={isHighContrast} 
+        <SignalDot
+          color={theme.signalRed}
+          active={signal === 'red'}
+          isColorBlind={isColorBlind}
+          shape="circle"
+          isHighContrast={isHighContrast}
           theme={theme}
         />
-        <SignalDot 
-          color={theme.signalYellow} 
-          active={signal === 'yellow'} 
-          isColorBlind={isColorBlind} 
-          shape="triangle" 
-          isHighContrast={isHighContrast} 
+        <SignalDot
+          color={theme.signalYellow}
+          active={signal === 'yellow'}
+          isColorBlind={isColorBlind}
+          shape="triangle"
+          isHighContrast={isHighContrast}
           theme={theme}
         />
-        <SignalDot 
-          color={theme.signalGreen} 
-          active={signal === 'green'} 
-          isColorBlind={isColorBlind} 
-          shape="diamond" 
-          isHighContrast={isHighContrast} 
+        <SignalDot
+          color={theme.signalGreen}
+          active={signal === 'green'}
+          isColorBlind={isColorBlind}
+          shape="diamond"
+          isHighContrast={isHighContrast}
           theme={theme}
         />
       </View>
@@ -104,6 +106,11 @@ export default function TrafficLightIndicator({ signal, profile, themeKey, theme
         <Text style={[styles.statusText, { fontSize: indicatorFontSize, color: theme.textPrimary }]}>
           {signal === 'red' ? 'STOP' : signal === 'green' ? 'GO' : signal === 'yellow' ? 'SLOW' : '---'}
         </Text>
+        {pct && (
+          <Text style={[styles.confidenceText, { fontSize: confidenceFontSize }]}>
+            {pct}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -143,5 +150,10 @@ const getStyles = (theme, isHighContrast) => StyleSheet.create({
   },
   statusText: {
     fontWeight: '900',
-  }
+  },
+  confidenceText: {
+    color: '#AAAAAA',
+    fontWeight: '600',
+    marginTop: 2,
+  },
 });
