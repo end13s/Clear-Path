@@ -81,7 +81,7 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
           x={px + 8} y={py + (isElderly ? 24 : 18)}
           fill={signalColor}
           fontSize={fontSize}
-          fontWeight="bold"
+          fontFamily="Lexend_700Bold"
         >
           {displayText}
         </SvgText>
@@ -139,7 +139,7 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
           x={px + 8} y={py + (isElderly ? 24 : 18)}
           fill={theme.textPrimary}
           fontSize={fontSize}
-          fontWeight="bold"
+          fontFamily="Lexend_700Bold"
         >
           {displayText}
         </SvgText>

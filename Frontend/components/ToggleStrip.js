@@ -27,9 +27,9 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
       }}
     >
       {value ? (
-        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>ON</Text>
+        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>ON</Text>
       ) : (
-        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>OFF</Text>
+        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>OFF</Text>
       )}
       <View
         style={{
@@ -127,8 +127,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   chevronText: {
     color: theme.textPrimary,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 20,
-    fontWeight: 'bold',
   },
   panel: {
     backgroundColor: theme.bgCard,
@@ -141,8 +141,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   headerText: {
     color: theme.textMuted,
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 16,
-    fontWeight: '600',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -161,7 +161,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   label: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 8,
     textAlign: 'center',
   },

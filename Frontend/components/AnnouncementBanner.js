@@ -48,7 +48,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   bannerText: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     textAlign: 'center',
   }
 });

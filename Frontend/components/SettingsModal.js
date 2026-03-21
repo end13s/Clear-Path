@@ -328,7 +328,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   genderBtnText: {
     color: theme.accentBlue,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 16,
   },
   genderBtnTextSelected: {
@@ -351,11 +351,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   title: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 4
   },
   subtitle: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     marginBottom: 20
   },
   scroll: {
@@ -363,8 +364,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionHeader: {
     color: theme.textMuted,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 12,
-    fontWeight: 'bold',
     letterSpacing: 1,
     marginBottom: 10,
     marginTop: 5
@@ -391,7 +392,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   themeCardText: {
     color: theme.textSecondary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     textAlign: 'center',
   },
   themeCardTextSelected: {
@@ -421,7 +422,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   cardTitle: {
     color: theme.textPrimary,
-    fontWeight: '600'
+    fontFamily: 'Lexend_600SemiBold'
   },
   radio: {
     width: 20,
@@ -443,7 +444,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   infoTitle: {
     color: theme.textPrimary,
-    fontWeight: '500'
+    fontFamily: 'Lexend_400Regular'
   },
   sliderBox: {
     backgroundColor: theme.bgCard,
@@ -459,8 +460,8 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 10,
   },
   infoLabel: {
+    fontFamily: 'Lexend_700Bold',
     fontSize: 12,
-    fontWeight: 'bold',
   },
   slider: {
     width: '100%',
@@ -477,7 +478,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   saveBtnText: {
     color: theme.bgPrimary, 
-    fontWeight: 'bold'
+    fontFamily: 'Lexend_700Bold'
   },
   clearBtn: {
     marginTop: 18,
@@ -486,6 +487,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   clearBtnText: {
     color: '#cc4444',
+    fontFamily: 'Lexend_400Regular',
     textAlign: 'center',
   },
   langSelected: {
@@ -501,11 +503,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   langSelectedText: {
     color: theme.textPrimary,
+    fontFamily: 'Lexend_600SemiBold',
     fontSize: 16,
-    fontWeight: '600',
   },
   langChevron: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     fontSize: 12,
   },
   langDropdown: {
@@ -530,15 +533,16 @@ const getStyles = (theme) => StyleSheet.create({
   },
   langOptionText: {
     color: theme.textPrimary,
+    fontFamily: 'Lexend_400Regular',
     fontSize: 16,
   },
   langOptionTextActive: {
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     color: theme.accentBlue,
   },
   langCheck: {
     color: theme.accentBlue,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });

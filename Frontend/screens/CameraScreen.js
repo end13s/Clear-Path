@@ -279,7 +279,7 @@ export default function CameraScreen() {
   if (!permission.granted) {
     return (
       <View style={[getStyles(theme).container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: theme.textPrimary }}>No access to camera</Text>
+        <Text style={{ color: theme.textPrimary, fontFamily: 'Lexend_400Regular' }}>No access to camera</Text>
       </View>
     );
   }
@@ -398,7 +398,7 @@ const getStyles = (theme) => StyleSheet.create({
     borderRadius: 20,
     zIndex: 100,
   },
-  reconnectText: { color: '#FFFFFF', fontWeight: 'bold' },
+  reconnectText: { color: '#FFFFFF', fontFamily: 'Lexend_700Bold' },
 
   // Demo controls bar — bottom-right above toggle strip
   demoBar: {
@@ -422,7 +422,7 @@ const getStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.accentBlue || '#0A84FF',
     borderColor: theme.accentBlue || '#0A84FF',
   },
-  demoBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+  demoBtnText: { color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: 13 },
   videoPickerBtn: {
     backgroundColor: 'rgba(13,27,42,0.85)',
     borderRadius: 8,
@@ -432,7 +432,7 @@ const getStyles = (theme) => StyleSheet.create({
     borderColor: theme.border,
     maxWidth: 150,
   },
-  videoPickerText: { color: '#FFFFFF', fontSize: 12 },
+  videoPickerText: { color: '#FFFFFF', fontFamily: 'Lexend_400Regular', fontSize: 12 },
 
   // Video dropdown list
   videoList: {
@@ -455,8 +455,8 @@ const getStyles = (theme) => StyleSheet.create({
     borderBottomColor: theme.border,
   },
   videoItemActive: { backgroundColor: theme.accentBlue || '#0A84FF' },
-  videoItemText: { color: theme.textPrimary, fontSize: 13 },
-  videoItemTextActive: { fontWeight: '700' },
+  videoItemText: { color: theme.textPrimary, fontFamily: 'Lexend_400Regular', fontSize: 13 },
+  videoItemTextActive: { fontFamily: 'Lexend_700Bold' },
 
   homeButtonContainer: {
     position: 'absolute',
