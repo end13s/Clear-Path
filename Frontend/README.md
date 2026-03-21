@@ -48,3 +48,9 @@ The app's UI is cleanly separated into specialized components:
 - **"Reconnecting..." Badge**: This means the WebSocket cannot reach your FastAPI backend. Ensure you updated the IP in `App.js` and that both devices are on the same WiFi.
 - **Audio Overlap**: The text-to-speech logic prevents overlapping by employing a simple queuing mechanism in `SpeechHandler.js`.
 - **Performance**: The app captures frames every 500ms at `quality: 0.3` to minimize payload sizes and prevent WebSocket bottlenecks.
+
+## Onboarding & Profiles
+
+The app now includes a built-in onboarding flow that customizes the UI based on user needs (e.g., larger fonts for elderly users, shape indicators for colorblind users). Profiles and preferences can be updated via the Settings Modal on the Home screen.
+
+**Note for Developers:** To retest the onboarding flow during development, you can call `clearProfile()` from `utils/ProfileStorage.js` to clear the persisted `AsyncStorage` values and re-trigger the onboarding screens on the next app load.

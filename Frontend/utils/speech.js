@@ -1,26 +1,28 @@
-import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// TODO: Import your custom audio files here
-// Example:
-// import redLightAudio from '../assets/red.wav';
+// Example generic audio fallback if needed, but we rely on expo-speech TTS here.
+// import { Audio } from 'expo-av';
 
-export async function announceSignal(message) {
+export async function announceSignal(message, profile) {
   try {
-    console.log("Audio trigger requested for:", message);
+    const isElderly = profile?.elderly || profile?.lowVision;
+    const isHearingDifficulty = profile?.hearingDifficulty;
+    
+    const speedStr = await AsyncStorage.getItem('clearpath_speech_speed');
+    const volStr = await AsyncStorage.getItem('clearpath_speech_volume');
 
-    /* 
-    Example logic for playing custom audio based on the text message.
-    Map the incoming "message" to your specific audio files!
-    
-    let audioSource;
-    if (message.includes('Red')) audioSource = require('../assets/red.mp3');
-    else if (message.includes('Green')) audioSource = require('../assets/green.mp3');
-    
-    if (audioSource) {
-      const { sound } = await Audio.Sound.createAsync(audioSource);
-      await sound.playAsync();
-    }
-    */
+    const rate = speedStr ? parseFloat(speedStr) : (isElderly ? 0.65 : 0.85);
+    const volume = volStr ? parseFloat(volStr) : (isHearingDifficulty ? 1.0 : 0.8);
+
+    console.log(`TTS -> "${message}" | Rate: ${rate} | Vol: ${volume || 'default'}`);
+
+    Speech.stop();
+    Speech.speak(message, {
+      rate: rate,
+      volume: volume,
+      pitch: 1.0, 
+    });
 
   } catch (error) {
     console.warn("Failed to play custom audio:", error);

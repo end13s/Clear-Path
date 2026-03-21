@@ -1,77 +1,98 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 
-const STROKE_COLORS = {
-  signal: '#FFD700',
-  signs: '#FF4444',
-  hazards: '#FF8800',
-};
+export default function BoundingBoxOverlay({ detections, toggles, profile, themeKey, theme }) {
+  if (!detections || detections.length === 0 || !theme) return null;
 
-export default function BoundingBoxOverlay({ detections, toggles }) {
+  const isElderly = profile?.elderly || profile?.lowVision;
+  const isColorBlind = profile?.colorBlind && !isElderly;
+  
+  const isHighContrast = themeKey === 'highContrast';
+  const strokeW = isHighContrast ? "5" : (isColorBlind ? "4" : "3");
+  const fontSize = isElderly ? "21" : "17";
+
+  const pillBorderStroke = isHighContrast ? theme.border : "none";
+  const pillBorderWidth = isHighContrast ? "2" : "0";
+
+  // Use a slight multiplier for pill width to ensure full text fits perfectly based on size
+  const charWidthMultiplier = isElderly ? 12 : 10;
   const { width: screenW, height: screenH } = useWindowDimensions();
 
   // Helper to render a single bounding box
-  const renderBox = (key, box, label, type) => {
-    if (!box || box.length !== 4) return null;
-    const [x, y, w, h] = box;
-    const absX = x * screenW;
-    const absY = y * screenH;
-    const absW = w * screenW;
-    const absH = h * screenH;
-    const strokeColor = STROKE_COLORS[type];
+  const renderBox = (item, idx) => {
+    const { bbox, class_name } = item;
+    if (!bbox || bbox.length !== 4) return null;
+
+    // Convert normalized coordinates [x1, y1, x2, y2] to screen coordinates
+    const sx1 = bbox[0] * screenW;
+    const sy1 = bbox[1] * screenH;
+    const sx2 = bbox[2] * screenW;
+    const sy2 = bbox[3] * screenH;
+
+    const w = sx2 - sx1;
+    const h = sy2 - sy1;
+
+    let color = theme.accentBlue;
+    const lowerName = class_name.toLowerCase();
+    
+    // Filter based on toggles and assign color from theme
+    if (lowerName.includes('light')) {
+      if (!toggles.trafficLights) return null;
+      color = theme.boxSignal;
+    } else if (lowerName.includes('sign')) {
+      if (!toggles.signs) return null;
+      color = theme.boxSigns;
+    } else if (lowerName.includes('person') || lowerName.includes('bicycle')) {
+      if (!toggles.hazards) return null;
+      color = theme.boxHazards;
+    } else {
+      // Ignore other objects if they aren't toggled mapping
+      return null;
+    }
+
+    const displayText = isColorBlind ? class_name.toUpperCase() : class_name;
+    
+    const pWidth = displayText.length * charWidthMultiplier + 16;
+    const pHeight = isElderly ? 34 : 26;
+    
+    let py = sy1 - pHeight - 4;
+    if (py < 0) {
+      py = sy1 + 4; // draw inside if clipping occurs
+    }
+    
+    let px = sx1;
+    if (px + pWidth > screenW) {
+      px = screenW - pWidth - 4;
+    }
 
     return (
-      <React.Fragment key={key}>
-        {/* The bounding box */}
+      <React.Fragment key={`bbox-${idx}`}>
         <Rect
-          x={absX}
-          y={absY}
-          width={absW}
-          height={absH}
-          stroke={strokeColor}
-          strokeWidth="3"
-          fill="none"
+          x={sx1} y={sy1} width={w} height={h}
+          stroke={color} strokeWidth={strokeW} fill="none"
         />
-        {/* Label Background Pill */}
         <Rect
-          x={absX}
-          y={Math.max(0, absY - 24)} // Adjust so label stays inside screen
-          width={label.length * 8 + 16} // Estimate width based on characters
-          height={24}
-          fill={strokeColor}
+          x={px} y={py} width={pWidth} height={pHeight}
+          fill={theme.bgHeader}
+          stroke={pillBorderStroke} strokeWidth={pillBorderWidth}
+          opacity={0.85} rx="4"
         />
-        {/* Label Text */}
         <SvgText
-          x={absX + 8}
-          y={Math.max(0, absY - 24) + 16}
-          fill="#FFFFFF"
-          fontSize="13"
+          x={px + 8} y={py + (isElderly ? 24 : 18)}
+          fill={theme.textPrimary}
+          fontSize={fontSize}
           fontWeight="bold"
         >
-          {label}
+          {displayText}
         </SvgText>
       </React.Fragment>
     );
   };
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Svg style={StyleSheet.absoluteFill}>
-        {/* Signals */}
-        {toggles.trafficLights && detections?.signal &&
-          renderBox('signal', detections.signal_box, `${detections.signal.charAt(0).toUpperCase() + detections.signal.slice(1)} Light`, 'signal')}
-        
-        {/* Signs */}
-        {toggles.signs && detections?.signs?.map((sign, i) =>
-          renderBox(`sign_${i}`, sign.box, sign.label, 'signs')
-        )}
-
-        {/* Hazards */}
-        {toggles.hazards && detections?.hazards?.map((hazard, i) =>
-          renderBox(`hazard_${i}`, hazard.box, hazard.label, 'hazards')
-        )}
-      </Svg>
-    </View>
+    <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+      {detections.map((item, idx) => renderBox(item, idx))}
+    </Svg>
   );
 }
