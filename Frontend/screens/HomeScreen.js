@@ -43,7 +43,7 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
 };
 
 export default function HomeScreen({ navigation }) {
-  const { profile, updateProfile, themeKey, updateThemeKey, toggles, updateToggle } = useContext(AppContext);
+  const { profile, updateProfile, themeKey, updateThemeKey, language, updateLanguage, toggles, updateToggle } = useContext(AppContext);
 
   const [helpVisible, setHelpVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
@@ -221,9 +221,11 @@ export default function HomeScreen({ navigation }) {
         onClose={() => setSettingsVisible(false)} 
         profile={profile}
         themeKey={themeKey}
-        onSave={(updatedProfile, updatedTheme) => {
+        language={language}
+        onSave={(updatedProfile, updatedTheme, updatedLanguage) => {
           updateProfile(updatedProfile);
           updateThemeKey(updatedTheme);
+          updateLanguage(updatedLanguage);
         }}
         onClear={() => {
           setSettingsVisible(false);

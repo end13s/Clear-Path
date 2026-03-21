@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isOnboardingComplete, loadProfile, loadTheme, saveProfile, saveTheme } from './ProfileStorage';
 
 export const AppContext = createContext();
@@ -8,6 +9,7 @@ export const AppProvider = ({ children }) => {
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [profile, setProfile] = useState(null);
   const [themeKey, setThemeKey] = useState('dark');
+  const [language, setLanguage] = useState('en');
   const [toggles, setToggles] = useState({ trafficLights: true, signs: true, hazards: true });
 
   useEffect(() => {
@@ -26,6 +28,10 @@ export const AppProvider = ({ children }) => {
         if (!t) t = 'dark';
       }
       setThemeKey(t);
+
+      const savedLang = await AsyncStorage.getItem('clearpath_language');
+      if (savedLang) setLanguage(savedLang);
+
       setIsLoaded(true);
     }
     init();
@@ -39,6 +45,11 @@ export const AppProvider = ({ children }) => {
   const updateThemeKey = async (newThemeKey) => {
     await saveTheme(newThemeKey);
     setThemeKey(newThemeKey);
+  };
+
+  const updateLanguage = async (newLang) => {
+    await AsyncStorage.setItem('clearpath_language', newLang);
+    setLanguage(newLang);
   };
 
   const updateToggle = (id, val) => {
@@ -58,6 +69,8 @@ export const AppProvider = ({ children }) => {
       updateProfile,
       themeKey, 
       updateThemeKey,
+      language,
+      updateLanguage,
       toggles, 
       updateToggle
     }}>
