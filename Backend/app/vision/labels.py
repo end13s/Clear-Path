@@ -3,6 +3,7 @@
 
 LABEL_MAP: dict[int, tuple[str, str]] = {
     # COCO class IDs (standard yolov8n)
+    0:  ("person",        "warning"),
     9:  ("traffic_light", "warning"),   # color refined by HSV in postprocessor
     11: ("stop_sign",     "critical"),
 }
