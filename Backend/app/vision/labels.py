@@ -2,13 +2,9 @@
 # Update these once you know the class order of your trained model.
 
 LABEL_MAP: dict[int, tuple[str, str]] = {
-    0: ("green_light",   "info"),
-    1: ("yellow_light",  "warning"),
-    2: ("red_light",     "critical"),
-    3: ("stop_sign",     "critical"),
-    4: ("yield_sign",    "warning"),
-    5: ("speed_limit",   "info"),
-    # add more as needed
+    # COCO class IDs (standard yolov8n)
+    9:  ("traffic_light", "warning"),   # color refined by HSV in postprocessor
+    11: ("stop_sign",     "critical"),
 }
 
 
