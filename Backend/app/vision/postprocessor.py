@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 
 from app.core.config import settings
@@ -16,6 +17,12 @@ _DUAL_CONF_MIN = 0.15
 
 # Lane-side filter — center 80% of frame is considered the driver's zone
 _DRIVER_LANE_LIMIT = 0.80
+
+# Vertical zone filter — reject lights whose center is in the top or bottom slice.
+# Top 10%: sky, sun glare, airplane/building lights.
+# Bottom 15%: hood, road surface reflections.
+_MIN_CENTER_Y_RATIO = 0.10
+_MAX_CENTER_Y_RATIO = 0.85
 
 
 def build_detections(results, orig_w: int, orig_h: int, scale_x: float, scale_y: float) -> list[Detection]:
@@ -77,8 +84,20 @@ def filter_detections(detections: list[Detection], frame: np.ndarray) -> list[De
         if not (_MIN_AREA_RATIO <= ratio <= _MAX_AREA_RATIO):
             continue
 
+        # 2. Vertical zone filter — reject sky/hood false positives
         if d.label in _LIGHT_LABELS:
-            # 2b. Lane-side filter — reject lights in the opposing lane's half
+            frame_h = frame.shape[0]
+            center_y = y + h / 2
+            if not (_MIN_CENTER_Y_RATIO * frame_h <= center_y <= _MAX_CENTER_Y_RATIO * frame_h):
+                continue
+
+        if d.label in _LIGHT_LABELS:
+            # 2b. Shape filter — traffic lights are tall/narrow (h/w ≥ 1.3)
+            # Stop signs, car lights, and most other false positives are square.
+            if h / max(w, 1) < 1.3:
+                continue
+
+            # 2c. Lane-side filter — reject lights in the opposing lane's half
             frame_w = frame.shape[1]
             center_x = x + w / 2
             limit = frame_w * _DRIVER_LANE_LIMIT
@@ -107,6 +126,17 @@ def filter_detections(detections: list[Detection], frame: np.ndarray) -> list[De
                     if hsv_color == "unknown" and not is_distant:
                         continue
                     if hsv_color != "unknown":
+                        # Stop sign guard: a stop sign has uniform red coverage
+                        # across its entire bbox; a traffic light has a small
+                        # concentrated blob against a dark housing.
+                        # If >45% of bbox pixels are red → drop as stop sign.
+                        if hsv_color == "red":
+                            hsv_full = cv2.cvtColor(region, cv2.COLOR_BGR2HSV)
+                            mask1 = cv2.inRange(hsv_full, np.array([0,   50, 50]), np.array([10,  255, 255]))
+                            mask2 = cv2.inRange(hsv_full, np.array([160, 50, 50]), np.array([180, 255, 255]))
+                            red_pct = (cv2.countNonZero(mask1) + cv2.countNonZero(mask2)) / max(region.shape[0] * region.shape[1], 1)
+                            if red_pct > 0.35:
+                                continue  # uniform red = stop sign, not traffic light
                         d = Detection(
                             label=f"{hsv_color}_light",
                             confidence=d.confidence,

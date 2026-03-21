@@ -8,11 +8,11 @@ from app.vision.postprocessor import build_detections, filter_detections
 
 _LIGHT_LABELS = {"green_light", "yellow_light", "red_light", "traffic_light"}
 _HOLD_FRAMES = 5        # hold last confirmed light for up to this many consecutive misses
-_COLOR_SWITCH_FRAMES = 4  # consecutive frames of a new color needed to displace confirmed color
-_EMA_ALPHA_UP   = 0.50         # weight for new frame when confidence is rising
+_COLOR_SWITCH_FRAMES = 2  # consecutive frames of a new color needed to displace confirmed color
+_EMA_ALPHA_UP   = 0.70         # weight for new frame when confidence is rising
 _EMA_ALPHA_DOWN = 0.05         # weight for new frame when confidence is falling (slow decay)
 _EMA_CAP = 0.95                # max reported confidence once detection is stable
-_STABILITY_BOOST = 0.05        # multiplier added per consecutive confirmed frame
+_STABILITY_BOOST = 0.12        # multiplier added per consecutive confirmed frame
 
 
 class Detector:

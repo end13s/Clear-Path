@@ -27,4 +27,7 @@ async def detect_frame(
     detections = detector.detect(frame)
     h, w = frame.shape[:2]
 
+    if detections:
+        print([f"{d.label}:{d.confidence:.2f}" for d in detections])
+
     return DetectionResponse(detections=detections, frame_width=w, frame_height=h)
