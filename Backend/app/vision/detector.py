@@ -9,6 +9,10 @@ from app.vision.postprocessor import build_detections, filter_detections
 _LIGHT_LABELS = {"green_light", "yellow_light", "red_light", "traffic_light"}
 _HOLD_FRAMES = 5        # hold last confirmed light for up to this many consecutive misses
 _COLOR_SWITCH_FRAMES = 4  # consecutive frames of a new color needed to displace confirmed color
+_EMA_ALPHA_UP   = 0.50         # weight for new frame when confidence is rising
+_EMA_ALPHA_DOWN = 0.05         # weight for new frame when confidence is falling (slow decay)
+_EMA_CAP = 0.95                # max reported confidence once detection is stable
+_STABILITY_BOOST = 0.05        # multiplier added per consecutive confirmed frame
 
 
 class Detector:
@@ -21,6 +25,9 @@ class Detector:
         self._confirmed_color: str | None = None   # locked-in color label
         self._challenger_color: str | None = None  # color trying to displace confirmed
         self._challenger_streak: int = 0
+        # Confidence smoothing
+        self._ema_confidence: float | None = None  # exponential moving average of confidence
+        self._confirmed_streak: int = 0            # consecutive frames on confirmed color
 
     def detect(self, frame: np.ndarray) -> list[Detection]:
         fh, fw = frame.shape[:2]
@@ -58,39 +65,61 @@ class Detector:
                 self._confirmed_color = None
                 self._challenger_color = None
                 self._challenger_streak = 0
+                self._confirmed_streak = 0
+                self._ema_confidence = None
 
         return non_lights + lights
+
+    def _smooth_confidence(self, raw: float) -> float:
+        """Asymmetric EMA: rises quickly, falls slowly.
+        Stability boost compounds with consecutive confirmed frames, capped at _EMA_CAP."""
+        if self._ema_confidence is None:
+            self._ema_confidence = raw
+        else:
+            alpha = _EMA_ALPHA_UP if raw >= self._ema_confidence else _EMA_ALPHA_DOWN
+            self._ema_confidence = alpha * raw + (1 - alpha) * self._ema_confidence
+        boosted = self._ema_confidence * (1.0 + self._confirmed_streak * _STABILITY_BOOST)
+        return round(min(boosted, _EMA_CAP), 3)
+
+    def _make_detection(self, template: Detection, label: str, smoothed_conf: float) -> Detection:
+        return Detection(
+            label=label,
+            confidence=smoothed_conf,
+            bbox=template.bbox,
+            severity=template.severity,
+        )
 
     def _apply_color_stability(self, lights: list[Detection]) -> list[Detection]:
         """Require _COLOR_SWITCH_FRAMES consecutive frames of a new color before
         replacing the currently confirmed color.  Prevents single-frame HSV
         misclassifications (e.g. yellow housing → yellow_light) from overriding
-        a well-established red/green reading."""
-        new_color = lights[0].label  # postprocessor already narrowed to one light
+        a well-established red/green reading.
+        Confidence is smoothed via EMA so it rises steadily as detection stabilises."""
+        d = lights[0]  # postprocessor already narrowed to one light
+        new_color = d.label
+        conf = self._smooth_confidence(d.confidence)
 
         if self._confirmed_color is None:
             # No confirmed color yet — accept immediately
             self._confirmed_color = new_color
             self._challenger_color = None
             self._challenger_streak = 0
-            return lights
+            self._confirmed_streak = 1
+            return [self._make_detection(d, new_color, conf)]
 
         if new_color == self._confirmed_color:
-            # Same color — reinforce confirmed, reset any challenger
+            # Same color — reinforce confirmed, grow streak, reset any challenger
+            self._confirmed_streak += 1
             self._challenger_color = None
             self._challenger_streak = 0
-            return lights
+            return [self._make_detection(d, self._confirmed_color, conf)]
 
-        # Generic "traffic_light" (HSV couldn't resolve color) — keep confirmed
+        # Generic "traffic_light" (HSV couldn't resolve color) — keep confirmed, keep growing streak
         if new_color == "traffic_light" and self._confirmed_color != "traffic_light":
+            self._confirmed_streak += 1
             self._challenger_color = None
             self._challenger_streak = 0
-            return [Detection(
-                label=self._confirmed_color,
-                confidence=lights[0].confidence,
-                bbox=lights[0].bbox,
-                severity=lights[0].severity,
-            )]
+            return [self._make_detection(d, self._confirmed_color, conf)]
 
         # Different specific color — challenger logic
         if new_color == self._challenger_color:
@@ -100,19 +129,18 @@ class Detector:
             self._challenger_streak = 1
 
         if self._challenger_streak >= _COLOR_SWITCH_FRAMES:
-            # Challenger has held long enough — promote to confirmed
+            # Challenger held long enough — promote and reset EMA + streak for new color
             self._confirmed_color = new_color
             self._challenger_color = None
             self._challenger_streak = 0
-            return lights
+            self._confirmed_streak = 1
+            self._ema_confidence = d.confidence  # restart EMA from raw value
+            conf = round(d.confidence, 3)
+            return [self._make_detection(d, new_color, conf)]
         else:
-            # Challenger hasn't proven itself — output confirmed color with new bbox
-            return [Detection(
-                label=self._confirmed_color,
-                confidence=lights[0].confidence,
-                bbox=lights[0].bbox,
-                severity=lights[0].severity,
-            )]
+            # Challenger hasn't proven itself — output confirmed color, streak keeps growing
+            self._confirmed_streak += 1
+            return [self._make_detection(d, self._confirmed_color, conf)]
 
 
 # Quick local test — run with: python -m app.vision.detector <image>
