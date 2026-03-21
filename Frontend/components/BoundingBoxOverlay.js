@@ -113,8 +113,7 @@ export default function BoundingBoxOverlay({ detections, toggles, profile, theme
       return null;
     }
 
-    const pct = (lowerName.includes('stop') || lowerName.includes('yield')) && confidence
-      ? ` ${Math.round(confidence * 100)}%` : '';
+    const pct = confidence ? ` ${Math.round(confidence * 100)}%` : '';
     const displayText = (isColorBlind ? class_name.toUpperCase() : class_name) + pct;
     const pWidth = displayText.length * charWidthMultiplier + 16;
     const pHeight = isElderly ? 34 : 26;
