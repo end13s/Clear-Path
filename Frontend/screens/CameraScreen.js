@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { io } from 'socket.io-client';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import BoundingBoxOverlay from '../components/BoundingBoxOverlay';
@@ -12,8 +11,9 @@ import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
 import { playSignalAudio } from '../utils/SignalAudio';
 
-const BACKEND_IP = '153.106.91.39';
-const WS_URL = `ws://${BACKEND_IP}:8000/ws`;
+const BACKEND_IP = '153.106.84.77';
+const DETECT_URL = `http://${BACKEND_IP}:8000/detect/frame`;
+const FRAME_INTERVAL_MS = 200; // ~5 fps
 
 const HomeIcon = ({ size, color }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -22,20 +22,51 @@ const HomeIcon = ({ size, color }) => (
   </Svg>
 );
 
+// Convert API detections → BoundingBoxOverlay format:
+//   label → class_name
+//   bbox [x, y, w, h] absolute pixels → [x1, y1, x2, y2] normalized 0-1
+function transformDetections(detections, frameWidth, frameHeight) {
+  return detections.map(d => {
+    const [x, y, w, h] = d.bbox;
+    return {
+      class_name: d.label,
+      confidence: d.confidence,
+      severity: d.severity,
+      bbox: [
+        x / frameWidth,
+        y / frameHeight,
+        (x + w) / frameWidth,
+        (y + h) / frameHeight,
+      ],
+    };
+  });
+}
+
 export default function CameraScreen() {
   const navigation = useNavigation();
   const { profile, themeKey, toggles, updateToggle, language } = useContext(AppContext);
   const theme = THEMES[themeKey] || THEMES.dark;
 
   const [permission, requestPermission] = useCameraPermissions();
-  const [socketConnected, setSocketConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [detections, setDetections] = useState([]);
   const [activeSignal, setActiveSignal] = useState(null);
   const [bannerMessage, setBannerMessage] = useState(null);
 
+  // Debug overlay state
+  const [debugInfo, setDebugInfo] = useState({
+    cameraReady: false,
+    fnCalls: 0,
+    framesSent: 0,
+    lastStatus: '—',
+    lastDetectionCount: 0,
+  });
+
   const cameraRef = useRef(null);
-  const socketRef = useRef(null);
   const intervalRef = useRef(null);
+  const isProcessingRef = useRef(false); // prevents overlapping requests
+  const framesSentRef = useRef(0);
+  const fnCallsRef = useRef(0);
 
   // Track last announced signal to avoid repeats
   const lastSignalRef = useRef(null);
@@ -72,65 +103,73 @@ export default function CameraScreen() {
   }, [activeSignal, language, userGender]);
 
   useEffect(() => {
-    const initSocket = () => {
-      try {
-        const socket = io(WS_URL, { transports: ['websocket'] });
-        socketRef.current = socket;
-
-        socket.on('connect', () => {
-          console.log('Connected to detection server');
-          setSocketConnected(true);
-        });
-
-        socket.on('disconnect', () => {
-          console.log('Disconnected from server');
-          setSocketConnected(false);
-        });
-
-        socket.on('detection_results', (data) => {
-          if (data && data.results) {
-            setDetections(data.results);
-            const signalItem = data.results.find(item => item.class_name.includes('light'));
-            if (signalItem && togglesRef.current.trafficLights) {
-              const cn = signalItem.class_name.toLowerCase();
-              if (cn.includes('green')) setActiveSignal('green');
-              else if (cn.includes('yellow')) setActiveSignal('yellow');
-              else if (cn.includes('red')) setActiveSignal('red');
-            } else {
-              setActiveSignal(null);
-            }
-          }
-        });
-      } catch (err) {
-        console.error('Socket initialization error:', err);
-      }
-    };
-
-    initSocket();
-
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
   const handleCameraReady = () => {
-    console.log("Camera is ready, starting frame capture...");
-    intervalRef.current = setInterval(captureAndSendFrame, 500);
+    setDebugInfo(prev => ({ ...prev, cameraReady: true }));
+    intervalRef.current = setInterval(captureAndSendFrame, FRAME_INTERVAL_MS);
   };
 
   const captureAndSendFrame = async () => {
-    if (cameraRef.current && socketConnected && socketRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.3,
-          base64: true,
-          skipProcessing: true,
-        });
-        socketRef.current.emit('frame', { image: photo.base64 });
-      } catch (err) {
-        console.warn('Frame capture skipped:', err);
+    fnCallsRef.current += 1;
+    setDebugInfo(prev => ({ ...prev, fnCalls: fnCallsRef.current }));
+    if (!cameraRef.current || isProcessingRef.current) return;
+
+    isProcessingRef.current = true;
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.3,
+      });
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: photo.uri,
+        name: 'frame.jpg',
+        type: 'image/jpeg',
+      });
+
+      const response = await fetch(DETECT_URL, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      setIsConnected(true);
+      framesSentRef.current += 1;
+
+      const transformed = transformDetections(
+        data.detections,
+        data.frame_width,
+        data.frame_height,
+      );
+      setDetections(transformed);
+      setDebugInfo(prev => ({
+        ...prev,
+        framesSent: framesSentRef.current,
+        lastStatus: 'OK',
+        lastDetectionCount: data.detections.length,
+      }));
+
+      const signalItem = transformed.find(item => item.class_name.includes('light'));
+      if (signalItem && togglesRef.current.trafficLights) {
+        const cn = signalItem.class_name.toLowerCase();
+        if (cn.includes('green')) setActiveSignal('green');
+        else if (cn.includes('yellow')) setActiveSignal('yellow');
+        else if (cn.includes('red')) setActiveSignal('red');
+      } else {
+        setActiveSignal(null);
       }
+    } catch (err) {
+      setIsConnected(false);
+      setDebugInfo(prev => ({ ...prev, lastStatus: err.message }));
+      console.warn('Detection request failed:', err.message);
+    } finally {
+      isProcessingRef.current = false;
     }
   };
 
@@ -150,7 +189,7 @@ export default function CameraScreen() {
   }
 
   const styles = getStyles(theme);
-  
+
   const isElderly = profile?.elderly || profile?.lowVision;
   const homeBtnSize = isElderly ? 60 : 48;
   const homeIconSize = isElderly ? 26 : 20;
@@ -166,7 +205,7 @@ export default function CameraScreen() {
 
       <BoundingBoxOverlay detections={detections} toggles={toggles} profile={profile} theme={theme} themeKey={themeKey} />
 
-      {!socketConnected && (
+      {!isConnected && (
         <View style={styles.reconnectBadge}>
           <Text style={styles.reconnectText}>Reconnecting...</Text>
         </View>
@@ -175,10 +214,19 @@ export default function CameraScreen() {
       <AnnouncementBanner message={bannerMessage} profile={profile} theme={theme} />
       <TrafficLightIndicator signal={activeSignal} profile={profile} theme={theme} themeKey={themeKey} />
       <ToggleStrip toggles={toggles} onToggle={handleToggle} profile={profile} theme={theme} />
-      
+
+      {/* Debug Overlay */}
+      <View style={styles.debugOverlay} pointerEvents="none">
+        <Text style={styles.debugText}>Camera: {debugInfo.cameraReady ? '✓ Ready' : '✗ Not Ready'}</Text>
+        <Text style={styles.debugText}>Fn calls: {debugInfo.fnCalls}</Text>
+        <Text style={styles.debugText}>Frames sent: {debugInfo.framesSent}</Text>
+        <Text style={styles.debugText}>Last POST: {debugInfo.lastStatus}</Text>
+        <Text style={styles.debugText}>Detections: {debugInfo.lastDetectionCount}</Text>
+      </View>
+
       {/* Home Button Container */}
       <View style={styles.homeButtonContainer} pointerEvents="box-none">
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.homeBtn, { width: homeBtnSize, height: homeBtnSize }]}
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
@@ -218,6 +266,20 @@ const getStyles = (theme) => StyleSheet.create({
     bottom: 24,
     zIndex: 200,
   },
+  debugOverlay: {
+    position: 'absolute',
+    top: 60,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    padding: 8,
+    borderRadius: 8,
+    zIndex: 300,
+  },
+  debugText: {
+    color: '#00FF88',
+    fontSize: 11,
+    fontFamily: 'monospace',
+  },
   homeBtn: {
     backgroundColor: 'rgba(13,27,42,0.9)',
     borderRadius: 12,
@@ -227,5 +289,5 @@ const getStyles = (theme) => StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
-  }
+  },
 });
