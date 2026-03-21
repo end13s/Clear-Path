@@ -10,39 +10,47 @@ import fem_eng_yellow from '../assets/audio/en/fem_eng_yellow.m4a';
 import fem_eng_red from '../assets/audio/en/fem_eng_red.m4a';
 import fem_eng_stop from '../assets/audio/en/fem_eng_stop.m4a';
 import fem_eng_yield from '../assets/audio/en/fem_eng_yield.m4a';
+import fem_eng_pedestrian from '../assets/audio/en/pedestrian/fem_eng_pedestrian.m4a';
 import male_eng_green from '../assets/audio/en/male_eng_green.m4a';
 import male_eng_yellow from '../assets/audio/en/male_eng_yellow.m4a';
 import male_eng_red from '../assets/audio/en/male_eng_red.m4a';
 import male_eng_stop from '../assets/audio/en/male_eng_stop.m4a';
 import male_eng_yield from '../assets/audio/en/male_eng_yield.m4a';
+import male_eng_pedestrian from '../assets/audio/en/pedestrian/male_eng_pedestrian.m4a';
 // Spanish
 import fem_span_green from '../assets/audio/es/fem_span_green.m4a';
 import fem_span_yellow from '../assets/audio/es/fem_span_yellow.m4a';
 import fem_span_red from '../assets/audio/es/fem_span_red.m4a';
 import fem_span_stop from '../assets/audio/es/fem_span_stop.m4a';
 import fem_span_yield from '../assets/audio/es/fem_span_yield.m4a';
+import fem_span_pedestrian from '../assets/audio/es/pedestrian/fem_span_pedestrian.m4a';
 import male_span_green from '../assets/audio/es/male_span_green.m4a';
 import male_span_yellow from '../assets/audio/es/male_span_yellow.m4a';
 import male_span_red from '../assets/audio/es/male_span_red.m4a';
 import male_span_stop from '../assets/audio/es/male_span_stop.m4a';
 import male_span_yield from '../assets/audio/es/male_span_yield.m4a';
+import male_span_pedestrian from '../assets/audio/es/pedestrian/male_span_pedestrian.m4a';
 // Romanian
 import fem_rom_green from '../assets/audio/ro/fem_rom_green.m4a';
 import fem_rom_yellow from '../assets/audio/ro/fem_rom_yellow.m4a';
 import fem_rom_red from '../assets/audio/ro/fem_rom_red.m4a';
 import fem_rom_stop from '../assets/audio/ro/fem_rom_stop.m4a';
 import fem_rom_yield from '../assets/audio/ro/fem_rom_yield.m4a';
+import fem_rom_pedestrian from '../assets/audio/ro/pedestrian/fem_rom_pedestrian.m4a';
 import male_rom_green from '../assets/audio/ro/male_rom_green.m4a';
 import male_rom_yellow from '../assets/audio/ro/male_rom_yellow.m4a';
 import male_rom_red from '../assets/audio/ro/male_rom_red.m4a';
 import male_rom_stop from '../assets/audio/ro/male_rom_stop.m4a';
 import male_rom_yield from '../assets/audio/ro/male_rom_yield.m4a';
+import male_rom_pedestrian from '../assets/audio/ro/pedestrian/male_rom_pedestrian.m4a';
 // Mandarin
 import fem_man_green from '../assets/audio/zh/fem_man_green.m4a';
 import fem_man_yellow from '../assets/audio/zh/fem_man_yellow.m4a';
 import fem_man_red from '../assets/audio/zh/fem_man_red.m4a';
 import fem_man_stop from '../assets/audio/zh/fem_man_stop.m4a';
 import fem_man_yield from '../assets/audio/zh/fem_man_yield.m4a';
+import fem_man_pedestrian from '../assets/audio/zh/pedestrian/fem_man_pedestrian.m4a';
+import male_man_pedestrian from '../assets/audio/zh/pedestrian/male_man_pedestrian.m4a';
 
 const audioMap = {
   en: {
@@ -52,6 +60,7 @@ const audioMap = {
       red: fem_eng_red,
       stop: fem_eng_stop,
       yield: fem_eng_yield,
+      pedestrian: fem_eng_pedestrian,
     },
     male: {
       green: male_eng_green,
@@ -59,6 +68,7 @@ const audioMap = {
       red: male_eng_red,
       stop: male_eng_stop,
       yield: male_eng_yield,
+      pedestrian: male_eng_pedestrian,
     },
   },
   es: {
@@ -68,6 +78,7 @@ const audioMap = {
       red: fem_span_red,
       stop: fem_span_stop,
       yield: fem_span_yield,
+      pedestrian: fem_span_pedestrian,
     },
     male: {
       green: male_span_green,
@@ -75,6 +86,7 @@ const audioMap = {
       red: male_span_red,
       stop: male_span_stop,
       yield: male_span_yield,
+      pedestrian: male_span_pedestrian,
     },
   },
   ro: {
@@ -84,6 +96,7 @@ const audioMap = {
       red: fem_rom_red,
       stop: fem_rom_stop,
       yield: fem_rom_yield,
+      pedestrian: fem_rom_pedestrian,
     },
     male: {
       green: male_rom_green,
@@ -91,6 +104,7 @@ const audioMap = {
       red: male_rom_red,
       stop: male_rom_stop,
       yield: male_rom_yield,
+      pedestrian: male_rom_pedestrian,
     },
   },
   zh: {
@@ -100,6 +114,7 @@ const audioMap = {
       red: fem_man_red,
       stop: fem_man_stop,
       yield: fem_man_yield,
+      pedestrian: fem_man_pedestrian,
     },
     male: {
       green: fem_man_green,
@@ -107,6 +122,7 @@ const audioMap = {
       red: fem_man_red,
       stop: fem_man_stop,
       yield: fem_man_yield,
+      pedestrian: male_man_pedestrian,
     },
   },
 };
