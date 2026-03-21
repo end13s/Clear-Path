@@ -81,7 +81,7 @@ export default function CameraScreen() {
   const stopStreakRef    = useRef(0);    // consecutive stop sign detection count
   const lastStopRef      = useRef(false); // has audio fired for current stop sign sighting
 
-  const [userGender, setUserGender] = useState('fem');
+  const [userGender, setUserGender] = useState(profile?.gender || 'fem');
   const togglesRef = useRef(toggles);
   useEffect(() => { togglesRef.current = toggles; }, [toggles]);
 

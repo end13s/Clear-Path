@@ -12,6 +12,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
   const [localTheme, setLocalTheme] = useState(themeKey || 'dark');
   const [localLanguage, setLocalLanguage] = useState(language || 'en');
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [localGender, setLocalGender] = useState(profile?.gender || 'fem');
   const [speechSpeed, setSpeechSpeed] = useState(0.85);
   const [speechVolume, setSpeechVolume] = useState(0.8);
 
@@ -20,6 +21,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
       if (profile) setLocalProfile(profile);
       if (themeKey) setLocalTheme(themeKey);
       setLocalLanguage(language || 'en');
+      setLocalGender(profile?.gender || 'fem');
       setLangDropdownOpen(false);
     }
   }, [visible, profile, themeKey, language]);
@@ -114,7 +116,8 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
   };
 
   const handleSave = async () => {
-    onSave && onSave(localProfile, localTheme, localLanguage);
+    const updatedProfile = { ...localProfile, gender: localGender };
+    onSave && onSave(updatedProfile, localTheme, localLanguage);
     onClose();
   };
 
@@ -200,7 +203,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
             <Text style={[styles.sectionHeader, { marginTop: 10 }]}>VOICE ANNOUNCEMENTS</Text>
 
             <View style={styles.sliderBox}>
-              <Text style={[styles.infoTitle, { fontSize: infoTitleSize, marginBottom: 8 }]}>Announcement language</Text>
+              <Text style={[styles.infoTitle, { fontSize: infoTitleSize, marginBottom: 8 }]}>{theme?.t ? theme.t('settings_lang_label') : 'Announcement language'}</Text>
               <TouchableOpacity
                 style={styles.langSelected}
                 onPress={() => setLangDropdownOpen(prev => !prev)}
@@ -235,6 +238,24 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
                   })}
                 </View>
               )}
+              {/* Gender selection row */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
+                <Text style={[styles.infoTitle, { fontSize: infoTitleSize, marginRight: 16 }]}>{theme?.t ? theme.t('settings_gender_label') : 'Voice Gender'}</Text>
+                <TouchableOpacity
+                  style={[styles.genderBtn, localGender === 'fem' && styles.genderBtnSelected]}
+                  onPress={() => setLocalGender('fem')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.genderBtnText, localGender === 'fem' && styles.genderBtnTextSelected]}>{theme?.t ? theme.t('settings_gender_fem') : 'Female'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.genderBtn, localGender === 'male' && styles.genderBtnSelected, { marginLeft: 8 }]}
+                  onPress={() => setLocalGender('male')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.genderBtnText, localGender === 'male' && styles.genderBtnTextSelected]}>{theme?.t ? theme.t('settings_gender_male') : 'Male'}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
             
             <View style={styles.sliderBox}>
@@ -294,6 +315,25 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
 }
 
 const getStyles = (theme) => StyleSheet.create({
+  genderBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.accentBlue,
+    backgroundColor: 'transparent',
+  },
+  genderBtnSelected: {
+    backgroundColor: theme.accentBlue,
+  },
+  genderBtnText: {
+    color: theme.accentBlue,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  genderBtnTextSelected: {
+    color: '#fff',
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
