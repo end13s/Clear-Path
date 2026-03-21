@@ -5,7 +5,7 @@ import SettingsModal from '../components/SettingsModal';
 import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
 
-const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inactiveColor, thumbColor }) => {
+const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inactiveColor, thumbColor, t }) => {
   const padding = 2;
   const dotSize = height - padding * 2;
   const translateX = value ? width - dotSize - padding * 2 : 0;
@@ -25,9 +25,9 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
       }}
     >
       {value ? (
-        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>ON</Text>
+        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>{t ? t('switch_on') : 'ON'}</Text>
       ) : (
-        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>OFF</Text>
+        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>{t ? t('switch_off') : 'OFF'}</Text>
       )}
       <View
         style={{
@@ -43,7 +43,7 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
 };
 
 export default function HomeScreen({ navigation }) {
-  const { profile, updateProfile, themeKey, updateThemeKey, language, updateLanguage, toggles, updateToggle } = useContext(AppContext);
+  const { profile, updateProfile, themeKey, updateThemeKey, language, updateLanguage, toggles, updateToggle, t } = useContext(AppContext);
 
   const [helpVisible, setHelpVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
@@ -71,14 +71,14 @@ export default function HomeScreen({ navigation }) {
   };
 
   const badgeText = isElderly 
-    ? 'Elderly mode' 
+    ? t('home_badge_elderly') 
     : profile?.colorBlind 
-      ? 'Color blindness mode' 
-      : 'Standard mode';
+      ? t('home_badge_color_blind') 
+      : t('home_badge_standard');
 
   const heroPara = isElderly
-    ? 'ClearPath watches the road for you. It announces traffic lights, signs, and nearby pedestrians — loudly and clearly.'
-    : 'ClearPath uses your camera to detect traffic lights, road signs, and pedestrians — announcing each one clearly so you can drive with confidence.';
+    ? t('home_hero_elderly')
+    : t('home_hero_standard');
 
   const handleToggle = (id) => {
     updateToggle(id, !toggles[id]);
@@ -94,9 +94,9 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={{ flex: 1, paddingRight: 16 }}>
-          <Text style={[styles.headerTitle, { fontSize: fonts.titles }]}>ClearPath</Text>
+          <Text style={[styles.headerTitle, { fontSize: fonts.titles }]}>{t('app_title')}</Text>
           <Text style={[styles.headerTagline, { fontSize: fonts.headerTagline }]}>
-            Technology with purpose. Driving with confidence.
+            {t('app_tagline')}
           </Text>
         </View>
         <TouchableOpacity 
@@ -117,16 +117,16 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.featuresSection}>
           <Text style={[styles.sectionTitle, { fontSize: fonts.sectionHeaders }]}>
-            {isElderly ? 'Features turned on' : 'Active features'}
+            {isElderly ? t('home_features_on_elderly') : t('home_features_on_standard')}
           </Text>
 
           <View style={styles.featureCard}>
             <View style={styles.featureInfo}>
               <Text style={styles.featureIcon}>🚦</Text>
               <View style={styles.featureTextCol}>
-                <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>Traffic lights</Text>
+                <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>{t('feat_lights_title')}</Text>
                 <Text style={[styles.featureSubtitle, { fontSize: fonts.body }]}>
-                  {isElderly ? 'Tells you when to stop and go' : 'Shape + color + label detection'}
+                  {isElderly ? t('feat_lights_sub_elderly') : t('feat_lights_sub_standard')}
                 </Text>
               </View>
             </View>
@@ -138,6 +138,7 @@ export default function HomeScreen({ navigation }) {
               activeColor={theme.accentBlue}
               inactiveColor={theme.border}
               thumbColor={theme.textPrimary}
+              t={t}
             />
           </View>
 
@@ -145,9 +146,9 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.featureInfo}>
               <Text style={styles.featureIcon}>🛑</Text>
               <View style={styles.featureTextCol}>
-                <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>Road signs</Text>
+                <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>{t('feat_signs_title')}</Text>
                 <Text style={[styles.featureSubtitle, { fontSize: fonts.body }]}>
-                  {isElderly ? 'Stop signs and speed limits' : 'Stop, yield, speed limits'}
+                  {isElderly ? t('feat_signs_sub_elderly') : t('feat_signs_sub_standard')}
                 </Text>
               </View>
             </View>
@@ -159,6 +160,7 @@ export default function HomeScreen({ navigation }) {
               activeColor={theme.accentBlue}
               inactiveColor={theme.border}
               thumbColor={theme.textPrimary}
+              t={t}
             />
           </View>
 
@@ -167,10 +169,10 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.featureIcon}>🚶</Text>
               <View style={styles.featureTextCol}>
                 <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>
-                  {isElderly ? 'People nearby' : 'Hazards'}
+                  {isElderly ? t('feat_hazards_title_elderly') : t('feat_hazards_title_standard')}
                 </Text>
                 <Text style={[styles.featureSubtitle, { fontSize: fonts.body }]}>
-                  {isElderly ? 'Warns if someone is crossing' : 'Pedestrians and cyclists'}
+                  {isElderly ? t('feat_hazards_sub_elderly') : t('feat_hazards_sub_standard')}
                 </Text>
               </View>
             </View>
@@ -182,6 +184,7 @@ export default function HomeScreen({ navigation }) {
               activeColor={theme.accentBlue}
               inactiveColor={theme.border}
               thumbColor={theme.textPrimary}
+              t={t}
             />
           </View>
         </View>
@@ -191,7 +194,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.helpIconBox}>
               <Text style={styles.helpIconText}>?</Text>
             </View>
-            <Text style={[styles.helpText, { fontSize: fonts.helpCenter }]}>How does this work?</Text>
+            <Text style={[styles.helpText, { fontSize: fonts.helpCenter }]}>{t('home_help_btn')}</Text>
           </View>
           <Text style={styles.chevron}>{'>'}</Text>
         </TouchableOpacity>
@@ -205,7 +208,7 @@ export default function HomeScreen({ navigation }) {
           activeOpacity={0.85}
           onPress={handleStartDriving}
         >
-          <Text style={[styles.startBtnText, { fontSize: fonts.button }]}>Start driving</Text>
+          <Text style={[styles.startBtnText, { fontSize: fonts.button }]}>{t('home_start_btn')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -214,6 +217,7 @@ export default function HomeScreen({ navigation }) {
         onClose={() => setHelpVisible(false)} 
         isElderly={isElderly} 
         theme={theme}
+        t={t}
       />
       
       <SettingsModal 
@@ -232,6 +236,7 @@ export default function HomeScreen({ navigation }) {
           navigation.replace('Onboarding');
         }}
         theme={theme}
+        t={t}
       />
     </SafeAreaView>
   );

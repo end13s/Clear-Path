@@ -7,7 +7,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function HelpModal({ visible, onClose, isElderly, theme }) {
+export default function HelpModal({ visible, onClose, isElderly, theme, t }) {
   const [expanded, setExpanded] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState(false);
   const scrollRef = useRef(null);
@@ -22,28 +22,28 @@ export default function HelpModal({ visible, onClose, isElderly, theme }) {
   const buttonFontSize = isElderly ? 23 : 20;
 
   const standardItems = [
-    { color: theme.boxSignal, title: 'Traffic light detection', desc: 'The app announces red or green lights out loud. A large colored label also appears.' },
-    { color: theme.boxSignal, title: 'Why is there a box on screen?', desc: 'The box shows exactly which light the app sees. The text inside tells you the color.' },
-    { color: theme.boxSigns, title: 'Road sign reading', desc: 'The app reads stop signs and speed limits out loud as you approach.' },
-    { color: theme.boxHazards, title: 'Hazard alerts', desc: 'The app warns you when people or bikes enter the road.' }
+    { color: theme.boxSignal, title: t('help_std_1_title'), desc: t('help_std_1_desc') },
+    { color: theme.boxSignal, title: t('help_std_2_title'), desc: t('help_std_2_desc') },
+    { color: theme.boxSigns, title: t('help_std_3_title'), desc: t('help_std_3_desc') },
+    { color: theme.boxHazards, title: t('help_std_4_title'), desc: t('help_std_4_desc') }
   ];
 
   const elderlyItems = [
-    { color: theme.boxSignal, title: 'It watches traffic lights', desc: 'ClearPath says "Red light" or "Green light" out loud. You can always hear the signal.' },
-    { color: theme.boxSignal, title: 'Why do I see a box?', desc: 'The box shows which light the app watches. It says RED, YELLOW, or GREEN.' },
-    { color: theme.boxSigns, title: 'It reads road signs', desc: 'It speaks stop signs and speed limits to you. You hear them before you arrive.' },
-    { color: theme.boxHazards, title: 'It warns about people', desc: 'It says "Pedestrian" right away if someone blocks you. A huge warning appears.' },
-    { color: theme.accentBlue, title: 'What are the switches?', desc: 'The switches turn features on or off. When a switch says ON, it is running.' },
-    { color: theme.accentBlue, title: 'Does it use the internet?', desc: 'No. The app runs fully on your phone.' }
+    { color: theme.boxSignal, title: t('help_eld_1_title'), desc: t('help_eld_1_desc') },
+    { color: theme.boxSignal, title: t('help_eld_2_title'), desc: t('help_eld_2_desc') },
+    { color: theme.boxSigns, title: t('help_eld_3_title'), desc: t('help_eld_3_desc') },
+    { color: theme.boxHazards, title: t('help_eld_4_title'), desc: t('help_eld_4_desc') },
+    { color: theme.accentBlue, title: t('help_eld_5_title'), desc: t('help_eld_5_desc') },
+    { color: theme.accentBlue, title: t('help_eld_6_title'), desc: t('help_eld_6_desc') }
   ];
 
   const moreHelpItems = [
-    { title: "How to change your settings", desc: "Tap the small gear icon in the top right corner of the home screen. That opens your profile page where you can change everything." },
-    { title: "How to turn a feature on or off", desc: "Each feature has a switch next to it. Tap the switch to turn it off — it will say OFF. Tap it again to turn it back on — it will say ON." },
-    { title: "How to make the voice louder", desc: "Go to settings using the gear icon. Scroll down to Voice announcements and drag the volume slider to the right." },
-    { title: "How to make the text bigger", desc: "Go to settings and select 'Age-related changes' under your needs. This makes all text and buttons bigger throughout the app." },
-    { title: "What if the app stops talking?", desc: "Check that your phone volume is turned up. Then check that the feature switcher is set to ON." },
-    { title: "How to go back to the home screen", desc: "While driving, tap the house icon in the bottom left corner of the screen to return home." }
+    { title: t('help_more_1_title'), desc: t('help_more_1_desc') },
+    { title: t('help_more_2_title'), desc: t('help_more_2_desc') },
+    { title: t('help_more_3_title'), desc: t('help_more_3_desc') },
+    { title: t('help_more_4_title'), desc: t('help_more_4_desc') },
+    { title: t('help_more_5_title'), desc: t('help_more_5_desc') },
+    { title: t('help_more_6_title'), desc: t('help_more_6_desc') }
   ];
 
   const items = isElderly ? elderlyItems : standardItems;
@@ -78,7 +78,7 @@ export default function HelpModal({ visible, onClose, isElderly, theme }) {
         </TouchableWithoutFeedback>
         
         <View style={styles.panel}>
-          <Text style={[styles.title, { fontSize: currentTitleSize }]}>How ClearPath Works</Text>
+          <Text style={[styles.title, { fontSize: currentTitleSize }]}>{t('help_title')}</Text>
           
           <ScrollView 
             ref={scrollRef} 
@@ -101,7 +101,7 @@ export default function HelpModal({ visible, onClose, isElderly, theme }) {
 
                 {/* Expandable Meta Section */}
                 <TouchableOpacity style={[styles.expandHeader, { marginBottom: expanded ? 16 : 0 }]} onPress={toggleExpand} activeOpacity={0.8}>
-                  <Text style={styles.expandTitle}>More help — using this app</Text>
+                  <Text style={styles.expandTitle}>{t('help_expand_title')}</Text>
                   <Text style={[styles.expandChevron, { transform: [{ rotate: expanded ? '90deg' : '0deg' }] }]}>{'>'}</Text>
                 </TouchableOpacity>
 
@@ -124,12 +124,12 @@ export default function HelpModal({ visible, onClose, isElderly, theme }) {
 
           {showScrollHint && (
             <View style={styles.scrollHint} pointerEvents="none">
-              <Text style={styles.scrollHintText}>↓ Scroll to see more</Text>
+              <Text style={styles.scrollHintText}>{t('help_scroll_hint')}</Text>
             </View>
           )}
 
           <TouchableOpacity style={[styles.gotItBtn, { paddingVertical: buttonPad }]} onPress={onClose}>
-            <Text style={[styles.gotItText, { fontSize: buttonFontSize }]}>Got it</Text>
+            <Text style={[styles.gotItText, { fontSize: buttonFontSize }]}>{t('help_got_it')}</Text>
           </TouchableOpacity>
         </View>
       </View>

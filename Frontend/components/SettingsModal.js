@@ -7,7 +7,7 @@ import { saveTheme, clearProfile } from '../utils/ProfileStorage';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function SettingsModal({ visible, onClose, profile, themeKey, language, onSave, onClear, theme }) {
+export default function SettingsModal({ visible, onClose, profile, themeKey, language, onSave, onClear, theme, t }) {
   const [localProfile, setLocalProfile] = useState(profile || { colorBlind: false, lowVision: false, elderly: false, hearingDifficulty: false });
   const [localTheme, setLocalTheme] = useState(themeKey || 'dark');
   const [localLanguage, setLocalLanguage] = useState(language || 'en');
@@ -55,16 +55,16 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
   const infoTitleSize = isElderly ? 20 : 17;
 
   const options = [
-    { id: 'colorBlind', icon: '🔴', title: 'Color blindness' },
-    { id: 'lowVision', icon: '👁️', title: 'Low vision' },
-    { id: 'elderly', icon: '👴', title: 'Age-related changes' },
-    { id: 'hearingDifficulty', icon: '📢', title: 'Hearing difficulty' }
+    { id: 'colorBlind', icon: '🔴', title: t('opt_color_blind_title') },
+    { id: 'lowVision', icon: '👁️', title: t('opt_low_vision_title') },
+    { id: 'elderly', icon: '👴', title: t('opt_elderly_title') },
+    { id: 'hearingDifficulty', icon: '📢', title: t('opt_hearing_title') }
   ];
 
   const themeOptions = [
-    { id: 'dark', title: 'Dark' },
-    { id: 'light', title: 'Light' },
-    { id: 'highContrast', title: 'High Contrast' },
+    { id: 'dark', title: t('theme_dark') },
+    { id: 'light', title: t('theme_light') },
+    { id: 'highContrast', title: t('theme_high_contrast') },
   ];
 
   const languageOptions = [
@@ -101,16 +101,16 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
   };
 
   const getSpeedLabel = (val) => {
-    if (val <= 0.6) return "Very slow";
-    if (val <= 0.85) return "Slow";
-    if (val <= 1.0) return "Normal";
-    return "Fast";
+    if (val <= 0.6) return t('speed_very_slow');
+    if (val <= 0.85) return t('speed_slow');
+    if (val <= 1.0) return t('speed_normal');
+    return t('speed_fast');
   };
 
   const getVolumeLabel = (val) => {
-    if (val <= 0.5) return "Low";
-    if (val <= 0.75) return "Medium";
-    return "High";
+    if (val <= 0.5) return t('vol_low');
+    if (val <= 0.75) return t('vol_medium');
+    return t('vol_high');
   };
 
   const handleSave = async () => {
@@ -120,12 +120,12 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
 
   const handleClearRequest = () => {
     Alert.alert(
-      "Clear preferences?",
-      "This will reset all your settings and show the welcome screen again. This cannot be undone.",
+      t('alert_clear_title'),
+      t('alert_clear_msg'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('alert_cancel'), style: "cancel" },
         { 
-          text: "Clear everything", 
+          text: t('alert_clear_confirm'), 
           style: "destructive", 
           onPress: async () => {
             await clearProfile();
@@ -146,11 +146,11 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
         </TouchableWithoutFeedback>
         
         <View style={styles.panel}>
-          <Text style={[styles.title, { fontSize: titleSize }]}>Your profile</Text>
-          <Text style={[styles.subtitle, { fontSize: subtitleSize }]}>Update your needs at any time</Text>
+          <Text style={[styles.title, { fontSize: titleSize }]}>{t('settings_title')}</Text>
+          <Text style={[styles.subtitle, { fontSize: subtitleSize }]}>{t('settings_subtitle')}</Text>
 
           <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-            <Text style={styles.sectionHeader}>THEME</Text>
+            <Text style={styles.sectionHeader}>{t('settings_sec_theme')}</Text>
             <View style={styles.themeRow}>
               {themeOptions.map(opt => {
                 const isSelected = localTheme === opt.id;
@@ -170,7 +170,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
             </View>
 
             <Text style={styles.sectionHeader}>
-              {isElderly ? 'I NEED HELP WITH' : 'I STRUGGLE WITH'}
+              {isElderly ? t('settings_sec_needs_elderly') : t('settings_sec_needs_standard')}
             </Text>
 
             {options.map((opt) => {
@@ -197,10 +197,10 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
               );
             })}
 
-            <Text style={[styles.sectionHeader, { marginTop: 10 }]}>VOICE ANNOUNCEMENTS</Text>
+            <Text style={[styles.sectionHeader, { marginTop: 10 }]}>{t('settings_sec_voice')}</Text>
 
             <View style={styles.sliderBox}>
-              <Text style={[styles.infoTitle, { fontSize: infoTitleSize, marginBottom: 8 }]}>Announcement language</Text>
+              <Text style={[styles.infoTitle, { fontSize: infoTitleSize, marginBottom: 8 }]}>{t('settings_lang_label')}</Text>
               <TouchableOpacity
                 style={styles.langSelected}
                 onPress={() => setLangDropdownOpen(prev => !prev)}
@@ -239,7 +239,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
             
             <View style={styles.sliderBox}>
               <View style={styles.sliderHeaderRow}>
-                <Text style={[styles.infoTitle, { fontSize: infoTitleSize }]}>Speech speed</Text>
+                <Text style={[styles.infoTitle, { fontSize: infoTitleSize }]}>{t('settings_speed_label')}</Text>
                 <Text style={[styles.infoLabel, { color: theme.accentBlue }]}>{getSpeedLabel(speechSpeed)}</Text>
               </View>
               <Slider
@@ -258,7 +258,7 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
 
             <View style={styles.sliderBox}>
               <View style={styles.sliderHeaderRow}>
-                <Text style={[styles.infoTitle, { fontSize: infoTitleSize }]}>Volume</Text>
+                <Text style={[styles.infoTitle, { fontSize: infoTitleSize }]}>{t('settings_vol_label')}</Text>
                 <Text style={[styles.infoLabel, { color: theme.accentBlue }]}>{getVolumeLabel(speechVolume)}</Text>
               </View>
               <Slider
@@ -280,12 +280,12 @@ export default function SettingsModal({ visible, onClose, profile, themeKey, lan
 
           <TouchableOpacity style={[styles.saveBtn, { paddingVertical: buttonPad }]} onPress={handleSave}>
             <Text style={[styles.saveBtnText, { fontSize: buttonFont }]}>
-              {isElderly ? 'Save my preferences' : 'Save preferences'}
+              {isElderly ? t('settings_save_elderly') : t('settings_save_standard')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.clearBtn} onPress={handleClearRequest}>
-            <Text style={[styles.clearBtnText, { fontSize: isElderly ? 15 : 13 }]}>Clear all preferences and restart setup</Text>
+            <Text style={[styles.clearBtnText, { fontSize: isElderly ? 15 : 13 }]}>{t('settings_clear')}</Text>
           </TouchableOpacity>
         </View>
       </View>

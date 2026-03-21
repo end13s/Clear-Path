@@ -24,7 +24,7 @@ const HomeIcon = ({ size, color }) => (
 
 export default function CameraScreen() {
   const navigation = useNavigation();
-  const { profile, themeKey, toggles, updateToggle, language } = useContext(AppContext);
+  const { profile, themeKey, toggles, updateToggle, language, t } = useContext(AppContext);
   const theme = THEMES[themeKey] || THEMES.dark;
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -144,7 +144,7 @@ export default function CameraScreen() {
   if (!permission.granted) {
     return (
       <View style={[getStyles(theme).container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: theme.textPrimary }}>No access to camera</Text>
+        <Text style={{ color: theme.textPrimary }}>{t('cam_no_access')}</Text>
       </View>
     );
   }
@@ -168,7 +168,7 @@ export default function CameraScreen() {
 
       {!socketConnected && (
         <View style={styles.reconnectBadge}>
-          <Text style={styles.reconnectText}>Reconnecting...</Text>
+          <Text style={styles.reconnectText}>{t('cam_reconnecting')}</Text>
         </View>
       )}
 

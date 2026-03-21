@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isOnboardingComplete, loadProfile, loadTheme, saveProfile, saveTheme } from './ProfileStorage';
+import { translations } from './translations';
 
 export const AppContext = createContext();
 
@@ -60,6 +61,8 @@ export const AppProvider = ({ children }) => {
     setIsOnboarded(true);
   };
 
+  const t = (key) => translations[language]?.[key] || translations['en']?.[key] || key;
+
   return (
     <AppContext.Provider value={{
       isLoaded, 
@@ -72,7 +75,8 @@ export const AppProvider = ({ children }) => {
       language,
       updateLanguage,
       toggles, 
-      updateToggle
+      updateToggle,
+      t
     }}>
       {children}
     </AppContext.Provider>

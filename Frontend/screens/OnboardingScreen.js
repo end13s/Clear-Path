@@ -5,7 +5,7 @@ import { THEMES } from '../utils/ThemeColors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function OnboardingScreen({ navigation }) {
-  const { themeKey, updateThemeKey, updateProfile, completeOnboarding } = useContext(AppContext);
+  const { themeKey, updateThemeKey, updateProfile, completeOnboarding, t } = useContext(AppContext);
   const theme = THEMES[themeKey] || THEMES.dark;
 
   const [localProfile, setLocalProfile] = useState({
@@ -17,11 +17,11 @@ export default function OnboardingScreen({ navigation }) {
   });
 
   const options = [
-    { id: 'colorBlind', icon: '🔴', title: 'Color blindness', subtitle: 'Difficulty distinguishing red, green, or other colors' },
-    { id: 'lowVision', icon: '👁️', title: 'Low vision', subtitle: 'Difficulty seeing clearly, even with glasses' },
-    { id: 'elderly', icon: '👴', title: 'Age-related changes', subtitle: 'Slower reaction time, need larger text and clearer cues' },
-    { id: 'hearingDifficulty', icon: '📢', title: 'Hearing difficulty', subtitle: 'Need louder or slower voice announcements' },
-    { id: 'none', icon: '✅', title: 'None of the above', subtitle: 'Use standard settings' }
+    { id: 'colorBlind', icon: '🔴', title: t('opt_color_blind_title'), subtitle: t('opt_color_blind_sub') },
+    { id: 'lowVision', icon: '👁️', title: t('opt_low_vision_title'), subtitle: t('opt_low_vision_sub') },
+    { id: 'elderly', icon: '👴', title: t('opt_elderly_title'), subtitle: t('opt_elderly_sub') },
+    { id: 'hearingDifficulty', icon: '📢', title: t('opt_hearing_title'), subtitle: t('opt_hearing_sub') },
+    { id: 'none', icon: '✅', title: t('opt_none_title'), subtitle: t('opt_none_sub') }
   ];
 
   const handleToggle = (id) => {
@@ -66,13 +66,13 @@ export default function OnboardingScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoSection}>
-        <Text style={styles.logoTitle}>ClearPath</Text>
-        <Text style={styles.logoTagline}>Technology with purpose. Driving with confidence.</Text>
+        <Text style={styles.logoTitle}>{t('app_title')}</Text>
+        <Text style={styles.logoTagline}>{t('app_tagline')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>What do you struggle with while driving?</Text>
-        <Text style={styles.subtext}>Select all that apply. We will tailor the app to your needs.</Text>
+        <Text style={styles.heading}>{t('onboarding_heading')}</Text>
+        <Text style={styles.subtext}>{t('onboarding_subtext')}</Text>
 
         <View style={styles.optionsContainer}>
           {options.map((opt) => {
@@ -103,7 +103,7 @@ export default function OnboardingScreen({ navigation }) {
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
-          <Text style={styles.continueBtnText}>Continue</Text>
+          <Text style={styles.continueBtnText}>{t('onboarding_continue')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
