@@ -2,6 +2,13 @@ import 'react-native-gesture-handler';
 import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useFonts } from 'expo-font';
+import {
+  Lexend_400Regular,
+  Lexend_600SemiBold,
+  Lexend_700Bold,
+} from '@expo-google-fonts/lexend';
+import * as SplashScreen from 'expo-splash-screen';
 
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -30,6 +37,20 @@ const AppNavigator = () => {
 };
 
 export default function App() {
+  SplashScreen.preventAutoHideAsync();
+
+  const [fontsLoaded] = useFonts({
+    Lexend_400Regular,
+    Lexend_600SemiBold,
+    Lexend_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  } else {
+    SplashScreen.hideAsync();
+  }
+
   return (
     <AppProvider>
       <AppNavigator />

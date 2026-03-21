@@ -31,7 +31,8 @@
         {
           "cameraPermission": "Allow ClearPath to access your camera to analyze the road."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

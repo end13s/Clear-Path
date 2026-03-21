@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const TOGGLE_ITEMS = [
-  { id: 'trafficLights', label: 'Traffic\nLights', icon: '🚦' },
-  { id: 'signs', label: 'Signs', icon: '🛑' },
-  { id: 'hazards', label: 'Hazards', icon: '🚶' },
+  { id: 'trafficLights', label: 'Traffic\nLights', iconName: 'traffic', iconSet: 'MaterialIcons', iconSize: 22 },
+  { id: 'signs', label: 'Signs', iconName: 'stop-circle-outline', iconSet: 'Ionicons', iconSize: 22 },
+  { id: 'hazards', label: 'Hazards', iconName: 'walk-outline', iconSet: 'Ionicons', iconSize: 22 },
 ];
 
 const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inactiveColor, thumbColor }) => {
@@ -27,9 +28,9 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
       }}
     >
       {value ? (
-        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>ON</Text>
+        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>ON</Text>
       ) : (
-        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>OFF</Text>
+        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>OFF</Text>
       )}
       <View
         style={{
@@ -86,7 +87,13 @@ export default function ToggleStrip({ toggles, onToggle, profile, theme }) {
         <Text style={[styles.headerText, { fontSize: headerFontSize }]}>Toggle{"\n"}Features:</Text>
         {TOGGLE_ITEMS.map((item) => (
           <View style={styles.row} key={item.id}>
-            <Text style={styles.icon}>{item.icon}</Text>
+            <View style={styles.iconContainer}>
+              {item.iconSet === 'MaterialIcons' ? (
+                <MaterialIcons name={item.iconName} size={item.iconSize} color={theme.textPrimary} />
+              ) : (
+                <Ionicons name={item.iconName} size={item.iconSize} color={theme.textPrimary} />
+              )}
+            </View>
             <Text style={[styles.label, { fontSize: labelFontSize }]}>{item.label}</Text>
             <CustomSwitch
               value={toggles[item.id]}
@@ -127,8 +134,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   chevronText: {
     color: theme.textPrimary,
+    fontFamily: 'Lexend_700Bold',
     fontSize: 20,
-    fontWeight: 'bold',
   },
   panel: {
     backgroundColor: theme.bgCard,
@@ -141,8 +148,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   headerText: {
     color: theme.textMuted,
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 16,
-    fontWeight: '600',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -155,13 +162,16 @@ const getStyles = (theme) => StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
   },
-  icon: {
-    fontSize: 26,
+  iconContainer: {
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 4,
   },
   label: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     marginBottom: 8,
     textAlign: 'center',
   },

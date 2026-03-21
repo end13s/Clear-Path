@@ -8,7 +8,7 @@ export const AppProvider = ({ children }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [themeKey, setThemeKey] = useState('dark');
+  const [themeKey, setThemeKey] = useState('light');
   const [language, setLanguage] = useState('en');
   const [toggles, setToggles] = useState({ trafficLights: true, signs: true, hazards: true });
 
@@ -21,11 +21,11 @@ export const AppProvider = ({ children }) => {
       if (completed) {
         const p = await loadProfile();
         if (!t) {
-          t = p?.colorBlind ? 'highContrast' : 'dark';
+          t = p?.colorBlind ? 'highContrast' : 'light';
         }
         setProfile(p);
       } else {
-        if (!t) t = 'dark';
+        if (!t) t = 'light';
       }
       setThemeKey(t);
 

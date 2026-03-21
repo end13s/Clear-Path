@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import HelpModal from '../components/HelpModal';
 import SettingsModal from '../components/SettingsModal';
 import { AppContext } from '../utils/AppContext';
@@ -25,9 +26,9 @@ const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inacti
       }}
     >
       {value ? (
-        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>ON</Text>
+        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>ON</Text>
       ) : (
-        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>OFF</Text>
+        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontFamily: 'Lexend_700Bold', fontSize: textFontSize }}>OFF</Text>
       )}
       <View
         style={{
@@ -103,7 +104,9 @@ export default function HomeScreen({ navigation }) {
           style={[styles.gearBtn, { width: sizes.gearBtn, height: sizes.gearBtn }]}
           onPress={() => setSettingsVisible(true)}
         >
-          <Text style={[styles.gearIcon, { fontSize: sizes.gearIcon }]}>⚙️</Text>
+          <View style={styles.gearIconContainer}>
+            <Ionicons name="settings-outline" size={20} color={theme.textPrimary} />
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -122,7 +125,9 @@ export default function HomeScreen({ navigation }) {
 
           <View style={styles.featureCard}>
             <View style={styles.featureInfo}>
-              <Text style={styles.featureIcon}>🚦</Text>
+              <View style={styles.featureIconContainer}>
+                <MaterialIcons name="traffic" size={22} color={theme.textPrimary} />
+              </View>
               <View style={styles.featureTextCol}>
                 <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>Traffic lights</Text>
                 <Text style={[styles.featureSubtitle, { fontSize: fonts.body }]}>
@@ -143,7 +148,9 @@ export default function HomeScreen({ navigation }) {
 
           <View style={styles.featureCard}>
             <View style={styles.featureInfo}>
-              <Text style={styles.featureIcon}>🛑</Text>
+              <View style={styles.featureIconContainer}>
+                <Ionicons name="stop-circle-outline" size={22} color={theme.textPrimary} />
+              </View>
               <View style={styles.featureTextCol}>
                 <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>Road signs</Text>
                 <Text style={[styles.featureSubtitle, { fontSize: fonts.body }]}>
@@ -164,7 +171,9 @@ export default function HomeScreen({ navigation }) {
 
           <View style={styles.featureCard}>
             <View style={styles.featureInfo}>
-              <Text style={styles.featureIcon}>🚶</Text>
+              <View style={styles.featureIconContainer}>
+                <Ionicons name="walk-outline" size={22} color={theme.textPrimary} />
+              </View>
               <View style={styles.featureTextCol}>
                 <Text style={[styles.featureTitle, { fontSize: fonts.titles }]}>
                   {isElderly ? 'People nearby' : 'Hazards'}
@@ -252,10 +261,11 @@ const getStyles = (theme) => StyleSheet.create({
   },
   headerTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
   },
   headerTagline: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -269,6 +279,10 @@ const getStyles = (theme) => StyleSheet.create({
   },
   gearIcon: {
     // defaults managed dynamically
+  },
+  gearIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
     paddingBottom: 20,
@@ -289,11 +303,12 @@ const getStyles = (theme) => StyleSheet.create({
   },
   badgeText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 12,
   },
   heroText: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
     lineHeight: 20,
   },
   featuresSection: {
@@ -301,9 +316,9 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle: {
     color: theme.textMuted,
+    fontFamily: 'Lexend_700Bold',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    fontWeight: 'bold',
     marginBottom: 12,
   },
   featureCard: {
@@ -327,16 +342,22 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 24,
     marginRight: 14,
   },
+  featureIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
   featureTextCol: {
     flex: 1,
   },
   featureTitle: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_600SemiBold',
     marginBottom: 4,
   },
   featureSubtitle: {
     color: theme.textSecondary,
+    fontFamily: 'Lexend_400Regular',
   },
   helpButtonContainer: {
     backgroundColor: theme.bgHero,
@@ -365,16 +386,16 @@ const getStyles = (theme) => StyleSheet.create({
   },
   helpIconText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 14,
   },
   helpText: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
   },
   chevron: {
     color: theme.textPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
     fontSize: 16,
   },
   bottomPin: {
@@ -394,6 +415,6 @@ const getStyles = (theme) => StyleSheet.create({
   },
   startBtnText: {
     color: theme.bgPrimary,
-    fontWeight: 'bold',
+    fontFamily: 'Lexend_700Bold',
   },
 });
