@@ -1,0 +1,10 @@
+{
+  "name": "clear-path",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm start --prefix Frontend",
+    "android": "npm run android --prefix Frontend",
+    "ios": "npm run ios --prefix Frontend"
+  }
+}
