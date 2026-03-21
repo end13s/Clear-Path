@@ -58,6 +58,7 @@ export const clearProfile = async () => {
     await AsyncStorage.removeItem(THEME_KEY);
     await AsyncStorage.removeItem('clearpath_speech_speed');
     await AsyncStorage.removeItem('clearpath_speech_volume');
+    await AsyncStorage.removeItem('clearpath_language');
   } catch (e) {
     console.error('Error clearing profile:', e);
   }
