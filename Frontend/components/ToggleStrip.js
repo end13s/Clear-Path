@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 
 const TOGGLE_ITEMS = [
   { id: 'trafficLights', label: 'Traffic\nLights', icon: '🚦' },
@@ -7,7 +7,49 @@ const TOGGLE_ITEMS = [
   { id: 'hazards', label: 'Hazards', icon: '🚶' },
 ];
 
-export default function ToggleStrip({ toggles, onToggle }) {
+const CustomSwitch = ({ value, onValueChange, width, height, activeColor, inactiveColor, thumbColor }) => {
+  const padding = 2;
+  const dotSize = height - padding * 2;
+  const translateX = value ? width - dotSize - padding * 2 : 0;
+  const textFontSize = Math.max(10, height * 0.45);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() => onValueChange(!value)}
+      style={{
+        width,
+        height,
+        borderRadius: height / 2,
+        backgroundColor: value ? activeColor : inactiveColor,
+        padding,
+        justifyContent: 'center',
+      }}
+    >
+      {value ? (
+        <Text style={{ position: 'absolute', left: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>ON</Text>
+      ) : (
+        <Text style={{ position: 'absolute', right: padding * 3, color: '#FFFFFF', fontWeight: 'bold', fontSize: textFontSize }}>OFF</Text>
+      )}
+      <View
+        style={{
+          width: dotSize,
+          height: dotSize,
+          borderRadius: dotSize / 2,
+          backgroundColor: thumbColor,
+          transform: [{ translateX }],
+        }}
+      />
+    </TouchableOpacity>
+  );
+};
+
+export default function ToggleStrip({ toggles, onToggle, profile, theme }) {
+  const isElderly = profile?.elderly || profile?.lowVision;
+  const headerFontSize = isElderly ? 18 : 16;
+  const labelFontSize = isElderly ? 20 : 17;
+  const panelWidth = isElderly ? 145 : 125; 
+
   const [isVisible, setIsVisible] = useState(true);
   const slideAnim = useState(new Animated.Value(0))[0];
 
@@ -19,15 +61,17 @@ export default function ToggleStrip({ toggles, onToggle }) {
     }).start();
   }, [isVisible]);
 
-  // Extremely narrow panel to save screen space
-  const panelWidth = 110; 
   const translateX = slideAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, panelWidth],
   });
 
+  if (!theme) return null;
+
+  const styles = getStyles(theme);
+
   return (
-    <Animated.View style={[styles.container, { transform: [{ translateX }] }]}>
+    <Animated.View style={[styles.container, { transform: [{ translateX }] }]} pointerEvents="box-none">
       {/* Chevron Tab */}
       <TouchableOpacity
         style={styles.chevronTab}
@@ -38,18 +82,20 @@ export default function ToggleStrip({ toggles, onToggle }) {
       </TouchableOpacity>
 
       {/* Main Panel */}
-      <View style={styles.panel}>
-        <Text style={styles.headerText}>Toggle{"\n"}Features:</Text>
+      <View style={[styles.panel, { minWidth: panelWidth }]}>
+        <Text style={[styles.headerText, { fontSize: headerFontSize }]}>Toggle{"\n"}Features:</Text>
         {TOGGLE_ITEMS.map((item) => (
           <View style={styles.row} key={item.id}>
             <Text style={styles.icon}>{item.icon}</Text>
-            <Text style={styles.label}>{item.label}</Text>
-            <Switch
-              trackColor={{ false: '#555555', true: '#1A8FE3' }}
-              thumbColor="#FFFFFF"
-              onValueChange={(value) => onToggle(item.id, value)}
+            <Text style={[styles.label, { fontSize: labelFontSize }]}>{item.label}</Text>
+            <CustomSwitch
               value={toggles[item.id]}
-              style={styles.switch}
+              onValueChange={(val) => onToggle(item.id, val)}
+              width={isElderly ? 60 : 50}
+              height={isElderly ? 28 : 24}
+              activeColor={theme.accentBlue}
+              inactiveColor={theme.border}
+              thumbColor={theme.textPrimary}
             />
           </View>
         ))}
@@ -58,18 +104,21 @@ export default function ToggleStrip({ toggles, onToggle }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     position: 'absolute',
     right: 0,
-    top: '25%', // Lifted slightly
+    top: '25%',
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 10,
   },
   chevronTab: {
-    backgroundColor: 'rgba(13, 27, 42, 0.95)',
-    paddingVertical: 24, // Taller touch target
+    backgroundColor: theme.bgHeader,
+    borderColor: theme.border,
+    borderWidth: 1.5,
+    borderRightWidth: 0,
+    paddingVertical: 24, 
     paddingHorizontal: 12,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
@@ -77,42 +126,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chevronText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 20,
     fontWeight: 'bold',
   },
   panel: {
-    backgroundColor: 'rgba(13, 27, 42, 0.95)',
-    minWidth: 110, // Dramatically thinner
+    backgroundColor: theme.bgCard,
+    borderColor: theme.border,
+    borderLeftWidth: 1.5,
+    borderTopWidth: 1.5,
+    borderBottomWidth: 1.5,
     paddingVertical: 20,
     paddingHorizontal: 8,
   },
   headerText: {
-    color: '#A0B0C0',
-    fontSize: 13,
+    color: theme.textMuted,
     marginBottom: 16,
     fontWeight: '600',
     textAlign: 'center',
     lineHeight: 18,
   },
   row: {
-    flexDirection: 'column', // Stacked strictly vertically
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: theme.border,
   },
   icon: {
     fontSize: 26,
     marginBottom: 4,
   },
   label: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
-    fontSize: 14,
-    marginBottom: 8, // Space between text and switch
+    marginBottom: 8,
     textAlign: 'center',
   },
   switch: {
