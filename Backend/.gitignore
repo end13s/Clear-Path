@@ -6,3 +6,4 @@ __pycache__/
 app/models/
 *.pt
 *.onnx
+debug_frame.jpg
