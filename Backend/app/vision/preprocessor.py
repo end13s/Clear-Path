@@ -46,6 +46,12 @@ ZONE_RIGHT_RATIO  = 0.25   # outer-right strip  — other-lane signals, ignored
 ZONE_TOP_RATIO    = 0.40   # top strip height   — lights are overhead, scanned
 ZONE_BOTTOM_RATIO = 0.60   # bottom strip height — road surface, ignored
 
+# Vertical split of a cropped traffic light (red on top, green at the bottom).
+# Must sum to 1.0; green is slightly larger because green housings are often taller.
+SECTION_RED_RATIO    = 0.30
+SECTION_YELLOW_RATIO = 0.30
+SECTION_GREEN_RATIO  = 0.40
+
 
 def get_zone_of_interest(
     frame: np.ndarray,
@@ -331,8 +337,8 @@ def split_traffic_light_sections(region: np.ndarray) -> dict[str, np.ndarray]:
     """Split a cropped traffic light region into three vertical zones.
 
     Standard vertical traffic lights have red on top, yellow in the middle,
-    and green on the bottom.  The ratios below do not need to be equal —
-    tweak them if your camera angle or light housing skews one zone.
+    and green on the bottom.  The SECTION_*_RATIO constants do not need to be
+    equal; tweak them if your camera angle or light housing skews one zone.
 
     Args:
         region: Cropped BGR image of a traffic light bounding box.
@@ -342,13 +348,8 @@ def split_traffic_light_sections(region: np.ndarray) -> dict[str, np.ndarray]:
     """
     h = region.shape[0]
 
-    # 🔧 EDIT THESE VALUES (must sum to 1.0)
-    RED_RATIO    = 0.30   # top portion of the bounding box
-    YELLOW_RATIO = 0.30   # middle portion
-    GREEN_RATIO  = 0.40   # bottom portion (slightly larger — green housings often taller)
-
-    red_end    = int(h * RED_RATIO)
-    yellow_end = int(h * (RED_RATIO + YELLOW_RATIO))
+    red_end    = round(h * SECTION_RED_RATIO)
+    yellow_end = round(h * (SECTION_RED_RATIO + SECTION_YELLOW_RATIO))
 
     return {
         "red":    region[0:red_end,        :],
