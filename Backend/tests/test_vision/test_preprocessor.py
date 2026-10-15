@@ -2,6 +2,9 @@ import numpy as np
 import pytest
 
 from app.vision.preprocessor import (
+    SECTION_GREEN_RATIO,
+    SECTION_RED_RATIO,
+    SECTION_YELLOW_RATIO,
     TARGET_SIZE,
     classify_traffic_light_color,
     crop_bbox,
@@ -95,21 +98,32 @@ def test_split_sections_keys():
     assert set(sections.keys()) == {"red", "yellow", "green"}
 
 
-def test_split_sections_heights():
-    region = np.zeros((90, 30, 3), dtype=np.uint8)
+def test_split_sections_follow_ratios():
+    region = np.zeros((100, 30, 3), dtype=np.uint8)
     sections = split_traffic_light_sections(region)
-    assert sections["red"].shape[0]    == 30
-    assert sections["yellow"].shape[0] == 30
-    assert sections["green"].shape[0]  == 30
+    assert sections["red"].shape[0]    == round(100 * SECTION_RED_RATIO)
+    assert sections["yellow"].shape[0] == round(100 * SECTION_YELLOW_RATIO)
+    assert sections["green"].shape[0]  == round(100 * SECTION_GREEN_RATIO)
+
+
+def test_split_sections_cover_whole_region():
+    for h in (6, 90, 101, 333):
+        region = np.zeros((h, 10, 3), dtype=np.uint8)
+        sections = split_traffic_light_sections(region)
+        assert sum(sec.shape[0] for sec in sections.values()) == h
+
+
+def test_section_ratios_sum_to_one():
+    assert SECTION_RED_RATIO + SECTION_YELLOW_RATIO + SECTION_GREEN_RATIO == pytest.approx(1.0)
 
 
 def test_split_sections_correct_pixels():
-    """Each third should contain the color painted there."""
+    """Each section should contain only the color painted at its position."""
     RED_BGR    = (0,   0,   255)
     YELLOW_BGR = (0,   255, 255)
     GREEN_BGR  = (0,   255, 0)
 
-    region = np.zeros((90, 30, 3), dtype=np.uint8)
+    region = np.zeros((100, 30, 3), dtype=np.uint8)
     region[0:30,  :] = RED_BGR
     region[30:60, :] = YELLOW_BGR
     region[60:,   :] = GREEN_BGR
