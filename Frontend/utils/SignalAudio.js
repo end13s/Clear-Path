@@ -1,6 +1,6 @@
 // Utility to play audio files for traffic signals based on language, gender, and color
 // Falls back to TTS if file is missing or playback fails
-import { Audio } from 'expo-av';
+import { createAudioPlayer } from 'expo-audio';
 import * as Speech from 'expo-speech';
 
 // --- Static imports for all audio files ---
@@ -74,16 +74,14 @@ export async function playSignalAudio({ color, lang = 'en', gender = 'fem' }) {
   try {
     const audioFile = audioMap?.[lang]?.[gender]?.[color];
     if (!audioFile) throw new Error('Audio file not found');
-    const { sound } = await Audio.Sound.createAsync(
-      audioFile,
-      { shouldPlay: true }
-    );
-    await sound.playAsync();
-    sound.setOnPlaybackStatusUpdate((status) => {
+    const player = createAudioPlayer(audioFile);
+    const sub = player.addListener('playbackStatusUpdate', (status) => {
       if (status.didJustFinish) {
-        sound.unloadAsync();
+        sub.remove();
+        player.release();
       }
     });
+    player.play();
   } catch (error) {
     // Fallback to TTS
     let ttsMsg = '';
