@@ -2,7 +2,6 @@ import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Example generic audio fallback if needed, but we rely on expo-speech TTS here.
-// import { Audio } from 'expo-av';
 
 export async function announceSignal(message, profile) {
   try {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Video, ResizeMode } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import BoundingBoxOverlay from '../components/BoundingBoxOverlay';
+import DemoVideo from '../components/DemoVideo';
 import AnnouncementBanner from '../components/AnnouncementBanner';
 import TrafficLightIndicator from '../components/TrafficLightIndicator';
 import ToggleStrip from '../components/ToggleStrip';
@@ -12,11 +12,13 @@ import { AppContext } from '../utils/AppContext';
 import { THEMES } from '../utils/ThemeColors';
 import { playSignalAudio } from '../utils/SignalAudio';
 
-const BACKEND_IP  = '153.106.84.77';
-const DETECT_URL  = `http://${BACKEND_IP}:8000/detect/frame`;
-const DEMO_DETECT = `http://${BACKEND_IP}:8000/demo/detect`;
-const VIDEOS_URL  = `http://${BACKEND_IP}:8000/demo/videos`;
-const VIDEO_BASE  = `http://${BACKEND_IP}:8000/videos`;
+// Set EXPO_PUBLIC_BACKEND_URL in Frontend/.env to your computer's LAN address
+// (e.g. http://192.168.1.20:8000) when running on a phone.
+const BACKEND_URL = (process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
+const DETECT_URL  = `${BACKEND_URL}/detect/frame`;
+const DEMO_DETECT = `${BACKEND_URL}/demo/detect`;
+const VIDEOS_URL  = `${BACKEND_URL}/demo/videos`;
+const VIDEO_BASE  = `${BACKEND_URL}/videos`;
 const FRAME_INTERVAL_MS       = 200;
 const DEMO_DETECT_INTERVAL_MS = 80;  // fire often; isProcessingRef limits actual rate to YOLO speed
 const CONFIRM_THRESHOLD = 0.50;        // minimum smoothed confidence (green)
@@ -294,18 +296,11 @@ export default function CameraScreen() {
 
       {/* ── Background: live camera OR demo video ── */}
       {isDemoMode ? (
-        <Video
-          source={{ uri: `${VIDEO_BASE}/${selectedVideo}` }}
+        <DemoVideo
+          key={selectedVideo}
+          uri={`${VIDEO_BASE}/${selectedVideo}`}
+          positionRef={videoPositionRef}
           style={styles.camera}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay
-          isLooping
-          isMuted
-          onPlaybackStatusUpdate={status => {
-            if (status.isLoaded) {
-              videoPositionRef.current = status.positionMillis ?? 0;
-            }
-          }}
         />
       ) : (
         <CameraView
