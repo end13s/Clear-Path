@@ -2,7 +2,7 @@
 
 A driving assistant for colorblind, elderly and low-vision drivers. A phone mounted on the dashboard watches the road, a computer-vision backend finds traffic lights, stop signs and pedestrians, and the app announces them with high-contrast visuals and recorded voice prompts in four languages.
 
-Built at the Calvin University Hackathon in March 2026.
+Built at the Calvin University Hackathon in March 2026, where it won first place.
 
 ## What it does
 
